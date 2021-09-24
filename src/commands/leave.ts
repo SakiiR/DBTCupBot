@@ -20,9 +20,7 @@ export default class LeaveCommand extends Command {
         const currentUser = await getCurrentUser(interaction);
 
 
-        const { values } = interaction;
-
-        const [value] = values;
+        const { values: [value] } = interaction;
 
         const cup = await Cup.findOne({ _id: value }).populate('challengers');
 

@@ -1,20 +1,20 @@
-import { Routes } from 'discord-api-types/v9';
 import { REST } from '@discordjs/rest';
-
+import { Routes } from 'discord-api-types/v9';
 import { Client, Intents } from 'discord.js';
-
 import signale from 'signale';
-
-import PingCommand from '../commands/ping';
-import ListAdminsCommand from '../commands/admin/list-admins';
 import CreateAdminCommand from '../commands/admin/create-admin';
-import EnrollCommand from '../commands/enroll';
-import LinkEpicCommand from '../commands/link-epic';
-import RemoveAdminCommand from '../commands/admin/remove-admin';
 import CreateCupCommand from '../commands/admin/create-cup';
-import SignupCommand from '../commands/signup';
-import ListPlayersCommand from '../commands/list-challengers';
+import ListAdminsCommand from '../commands/admin/list-admins';
+import RemoveAdminCommand from '../commands/admin/remove-admin';
+import EnrollCommand from '../commands/enroll';
 import LeaveCommand from '../commands/leave';
+import LinkEpicCommand from '../commands/link-epic';
+import ListPlayersCommand from '../commands/list-challengers';
+import PingCommand from '../commands/ping';
+import SignupCommand from '../commands/signup';
+
+
+
 
 export default class DiscordClient {
     private token: string = '';
@@ -86,16 +86,18 @@ export default class DiscordClient {
 
         await this.client.login(this.token);
 
-        this.commands.push(new PingCommand(this.client));
-        this.commands.push(new ListAdminsCommand(this.client));
-        this.commands.push(new CreateAdminCommand(this.client));
-        this.commands.push(new EnrollCommand(this.client));
-        this.commands.push(new LinkEpicCommand(this.client));
-        this.commands.push(new RemoveAdminCommand(this.client));
-        this.commands.push(new CreateCupCommand(this.client));
-        this.commands.push(new SignupCommand(this.client));
-        this.commands.push(new ListPlayersCommand(this.client));
-        this.commands.push(new LeaveCommand(this.client));
+        this.commands = [
+            new PingCommand(this.client),
+            new ListAdminsCommand(this.client),
+            new CreateAdminCommand(this.client),
+            new EnrollCommand(this.client),
+            new LinkEpicCommand(this.client),
+            new RemoveAdminCommand(this.client),
+            new CreateCupCommand(this.client),
+            new SignupCommand(this.client),
+            new ListPlayersCommand(this.client),
+            new LeaveCommand(this.client),
+        ];
 
         await this.registerCommands();
     }

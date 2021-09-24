@@ -3,17 +3,14 @@ import {
     CommandInteraction,
     MessageActionRow,
     MessageSelectMenu,
-    SelectMenuInteraction,
+    SelectMenuInteraction
 } from 'discord.js';
-import enforceAdmin from '../utils/enforce-admin-interaction';
-import getCurrentUser from '../utils/get-interaction-user';
-
-import signale from 'signale';
-
-import { IUser } from '../models/user';
 import Cup from '../models/cup';
-import LinkEpicCommand from './link-epic';
+import { IUser } from '../models/user';
+import getCurrentUser from '../utils/get-interaction-user';
 import Command from './command';
+
+
 
 export default class SignupCommand extends Command {
     _name = 'signup';
@@ -27,9 +24,7 @@ export default class SignupCommand extends Command {
                 `You need to link your Epic account first! use /link-epic first`
             );
 
-        const { values } = interaction;
-
-        const [value] = values;
+        const { values: [value] } = interaction;
 
         const cup = await Cup.findOne({ _id: value }).populate('challengers');
 
