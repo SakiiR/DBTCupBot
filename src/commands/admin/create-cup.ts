@@ -3,18 +3,19 @@ import { CommandInteraction, SelectMenuInteraction } from "discord.js";
 import enforceAdmin from '../../utils/enforce-admin-interaction';
 import Cup from "../../models/cup";
 import Config from '../../config';
+import Command from '../command';
 
 
 /**
  * Example command
  */
-export default class CreateCupCommand {
-    static _name = 'create-cup';
-    static _description = 'Create a new cup';
+export default class CreateCupCommand extends Command {
+    _name = 'create-cup';
+    _description = 'Create a new cup';
 
-    static async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
+    async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
 
-    static async onCommandInteraction(interaction: CommandInteraction) {
+    async onCommandInteraction(interaction: CommandInteraction) {
         if (!(await enforceAdmin(interaction))) {
             return await interaction.reply('You are not an admin');
         }
@@ -33,7 +34,7 @@ export default class CreateCupCommand {
         return await interaction.reply(`Cup ${cupName} created!`);
     }
 
-    static async register() {
+    async register() {
         return new SlashCommandBuilder()
             .setName(this._name)
             .setDescription(this._description)

@@ -2,14 +2,15 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, SelectMenuInteraction } from 'discord.js';
 import User from '../models/user';
 import DiaboticalService from '../services/diabotical';
+import Command from './command';
 
-export default class LinkEpicCommand {
-    static _name = 'link-epic';
-    static _description = 'Link your epic game account';
+export default class LinkEpicCommand extends Command {
+    _name = 'link-epic';
+    _description = 'Link your epic game account';
 
-    static async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
+    async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
 
-    static async onCommandInteraction(interaction: CommandInteraction) {
+    async onCommandInteraction(interaction: CommandInteraction) {
         const epicId = interaction.options.getString('epic-id');
         const { username, discriminator } = interaction.user;
         const discordTag = `${username}#${discriminator}`;
@@ -29,7 +30,7 @@ export default class LinkEpicCommand {
         await interaction.reply("Your epicId has been register'd successfully");
     }
 
-    static async register() {
+    async register() {
         return new SlashCommandBuilder()
             .setName(this._name)
             .setDescription(this._description)

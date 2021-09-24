@@ -51,7 +51,6 @@ async function main() {
 
     const client = new DiscordClient(Config.discord_token, Config.discord_client_id, Config.discord_guild_id);
 
-    await client.registerCommands();
 
     await client.start();
 

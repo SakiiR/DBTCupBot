@@ -9,12 +9,13 @@ import enforceAdmin from '../utils/enforce-admin-interaction';
 import getCurrentUser from '../utils/get-interaction-user';
 
 import Cup from '../models/cup';
+import Command from './command';
 
-export default class ListPlayersCommand {
-    static _name = 'list-players';
-    static _description = 'List the challengers registered for a specific cup';
+export default class ListPlayersCommand extends Command {
+    _name = 'list-players';
+    _description = 'List the challengers registered for a specific cup';
 
-    static async onSelectMenuInteraction(interaction: SelectMenuInteraction) {
+    async onSelectMenuInteraction(interaction: SelectMenuInteraction) {
         const { values } = interaction;
 
         const [value] = values;
@@ -33,9 +34,10 @@ export default class ListPlayersCommand {
         return await interaction.reply(str);
     }
 
-    static async onCommandInteraction(interaction: CommandInteraction) {
+    async onCommandInteraction(interaction: CommandInteraction) {
         const cups = await Cup.find({
             over: false,
+            started: false
         });
 
         if (cups.length === 0) {
@@ -58,7 +60,7 @@ export default class ListPlayersCommand {
         await interaction.reply({ content: 'Please choose a cup', components: [row] });
     }
 
-    static async register() {
+    async register() {
         return new SlashCommandBuilder()
             .setName(this._name)
             .setDescription(this._description);

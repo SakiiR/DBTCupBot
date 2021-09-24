@@ -11,12 +11,13 @@ import getCurrentUser from '../../utils/get-interaction-user';
 import signale from "signale";
 
 import User from '../../models/user';
+import Command from '../command';
 
-export default class RemoveAdminCommand {
-    static _name = 'remove-admin';
-    static _description = 'Removes an admin';
+export default class RemoveAdminCommand extends Command {
+    _name = 'remove-admin';
+    _description = 'Removes an admin';
 
-    static async onSelectMenuInteraction(interaction: SelectMenuInteraction) {
+    async onSelectMenuInteraction(interaction: SelectMenuInteraction) {
         if (!(await enforceAdmin(interaction))) {
             return await interaction.reply('You are not an admin');
         }
@@ -31,7 +32,7 @@ export default class RemoveAdminCommand {
 
     }
 
-    static async onCommandInteraction(interaction: CommandInteraction) {
+    async onCommandInteraction(interaction: CommandInteraction) {
         if (!(await enforceAdmin(interaction))) {
             return await interaction.reply('You are not an admin');
         }
@@ -63,7 +64,7 @@ export default class RemoveAdminCommand {
         await interaction.reply({ content: 'Ok!', components: [row] });
     }
 
-    static async register() {
+    async register() {
         return new SlashCommandBuilder()
             .setName(this._name)
             .setDescription(this._description);

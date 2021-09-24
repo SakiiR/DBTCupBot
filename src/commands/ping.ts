@@ -1,21 +1,22 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, SelectMenuInteraction } from "discord.js";
+import Command from './command';
 
 
 /**
  * Example command
  */
-export default class PingCommand {
-    static _name = 'ping';
-    static _description = 'Replies pong';
+export default class PingCommand extends Command {
+    _name = 'ping';
+    _description = 'Replies pong';
 
-    static async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
+    async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
 
-    static async onCommandInteraction(interaction: CommandInteraction) {
+    async onCommandInteraction(interaction: CommandInteraction) {
         return await interaction.reply('pong!!!');
     }
 
-    static async register() {
+    async register() {
         return new SlashCommandBuilder()
             .setName(this._name)
             .setDescription(this._description);

@@ -5,27 +5,20 @@ import {
     MessageSelectMenu,
     SelectMenuInteraction,
 } from 'discord.js';
-import enforceAdmin from '../utils/enforce-admin-interaction';
 import getCurrentUser from '../utils/get-interaction-user';
 
-import signale from 'signale';
 
 import { IUser } from '../models/user';
 import Cup from '../models/cup';
-import LinkEpicCommand from './link-epic';
 import Command from './command';
 
-export default class SignupCommand extends Command {
-    _name = 'signup';
-    _description = 'Signup to a specific cup';
+export default class LeaveCommand extends Command {
+    _name = 'leave';
+    _description = 'Leave a specific cup';
 
     async onSelectMenuInteraction(interaction: SelectMenuInteraction) {
         const currentUser = await getCurrentUser(interaction);
 
-        if (!currentUser.epicId)
-            return await interaction.reply(
-                `You need to link your Epic account first! use /link-epic first`
-            );
 
         const { values } = interaction;
 
@@ -33,19 +26,21 @@ export default class SignupCommand extends Command {
 
         const cup = await Cup.findOne({ _id: value }).populate('challengers');
 
+        if (cup.started && !cup.over) return await interaction.reply('Cup has already started!');
+
         const found = [...cup.challengers].find(
             (u: IUser) => u._id.toString() === currentUser._id.toString()
         );
-        if (!!found)
-            return await interaction.reply('You are already signed up!');
+        if (!found)
+            return await interaction.reply('You are not playing this cup');
 
         await Cup.updateOne(
             { _id: cup._id },
-            { $push: { challengers: currentUser._id } }
+            { $pull: { challengers: currentUser._id } }
         );
 
         return await interaction.reply(
-            `Successfully signed up for **${cup.title}**`
+            `Successfully left  **${cup.title}**`
         );
     }
 
@@ -66,14 +61,14 @@ export default class SignupCommand extends Command {
                 .addOptions([
                     ...cups.map((cup) => ({
                         label: cup.title,
-                        description: `Signup to '${cup.title}'`,
+                        description: `Leave '${cup.title}'`,
                         value: cup._id.toString(),
                     })),
                 ])
         );
 
         await interaction.reply({
-            content: 'Please choose a cup',
+            content: 'Please choose a cup to leave',
             components: [row],
         });
     }

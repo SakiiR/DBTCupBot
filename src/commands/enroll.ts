@@ -1,15 +1,16 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, SelectMenuInteraction } from "discord.js";
 import User from '../models/user';
+import Command from './command';
 
 
-export default class EnrollCommand {
-    static _name = 'enroll';
-    static _description = 'Enroll the user into the system';
+export default class EnrollCommand extends Command {
+    _name = 'enroll';
+    _description = 'Enroll the user into the system';
 
-    static async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
+    async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
 
-    static async onCommandInteraction(interaction: CommandInteraction) {
+    async onCommandInteraction(interaction: CommandInteraction) {
         const { username, discriminator } = interaction.user;
         const discordTag = `${username}#${discriminator}`;
 
@@ -23,7 +24,7 @@ export default class EnrollCommand {
         return await interaction.reply(`You have been enroll'd into the system`);
     }
 
-    static async register() {
+    async register() {
         return new SlashCommandBuilder()
             .setName(this._name)
             .setDescription(this._description);

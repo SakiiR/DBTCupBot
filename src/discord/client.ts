@@ -14,23 +14,16 @@ import RemoveAdminCommand from '../commands/admin/remove-admin';
 import CreateCupCommand from '../commands/admin/create-cup';
 import SignupCommand from '../commands/signup';
 import ListPlayersCommand from '../commands/list-challengers';
+import LeaveCommand from '../commands/leave';
 
 export default class DiscordClient {
     private token: string = '';
     private application_id: string = '';
     private guild_id: string = '';
+    private client: Client;
 
     // Add new commands here
     private commands = [
-        PingCommand,
-        ListAdminsCommand,
-        CreateAdminCommand,
-        EnrollCommand,
-        LinkEpicCommand,
-        RemoveAdminCommand,
-        CreateCupCommand,
-        SignupCommand,
-        ListPlayersCommand,
     ];
 
     constructor(token: string, application_id: string, guild_id: string) {
@@ -61,15 +54,14 @@ export default class DiscordClient {
     }
 
     public async start() {
-        const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+        this.client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
         // When the client is ready, run this code (only once)
-        client.once('ready', () => {
+        this.client.once('ready', () => {
             signale.success('Ready!');
         });
 
-        client.on('interactionCreate', async (interaction) => {
-
+        this.client.on('interactionCreate', async (interaction) => {
             if (interaction.isCommand()) {
                 const { commandName } = interaction;
 
@@ -88,11 +80,23 @@ export default class DiscordClient {
                         await command.onSelectMenuInteraction(interaction);
                         break;
                     }
-
                 }
             }
         });
 
-        await client.login(this.token);
+        await this.client.login(this.token);
+
+        this.commands.push(new PingCommand(this.client));
+        this.commands.push(new ListAdminsCommand(this.client));
+        this.commands.push(new CreateAdminCommand(this.client));
+        this.commands.push(new EnrollCommand(this.client));
+        this.commands.push(new LinkEpicCommand(this.client));
+        this.commands.push(new RemoveAdminCommand(this.client));
+        this.commands.push(new CreateCupCommand(this.client));
+        this.commands.push(new SignupCommand(this.client));
+        this.commands.push(new ListPlayersCommand(this.client));
+        this.commands.push(new LeaveCommand(this.client));
+
+        await this.registerCommands();
     }
 }

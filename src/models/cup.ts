@@ -8,6 +8,7 @@ export interface ICup {
     challengers: IUser[] | string[];
     maps: string[];
     over: boolean;
+    started: boolean;
 }
 
 
@@ -17,6 +18,7 @@ const schema = new Schema<ICup>({
     challengers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     maps: [{ type: String }],
     over: { type: Boolean, default: false },
+    started: { type: Boolean, default: false },
 });
 
 export default model<ICup>('Cup', new Schema(schema));
