@@ -9,6 +9,7 @@ export interface ICup {
     maps: string[];
     over: boolean;
     started: boolean;
+    data: any;
 }
 
 
@@ -19,6 +20,7 @@ const schema = new Schema<ICup>({
     maps: [{ type: String }],
     over: { type: Boolean, default: false },
     started: { type: Boolean, default: false },
+    data: { type: Object, default: {} },
 });
 
 export default model<ICup>('Cup', new Schema(schema));

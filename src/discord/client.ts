@@ -6,6 +6,7 @@ import CreateAdminCommand from '../commands/admin/create-admin';
 import CreateCupCommand from '../commands/admin/create-cup';
 import ListAdminsCommand from '../commands/admin/list-admins';
 import RemoveAdminCommand from '../commands/admin/remove-admin';
+import StartCupCommand from '../commands/admin/start';
 import EnrollCommand from '../commands/enroll';
 import LeaveCommand from '../commands/leave';
 import LinkEpicCommand from '../commands/link-epic';
@@ -30,6 +31,10 @@ export default class DiscordClient {
         this.token = token;
         this.application_id = application_id;
         this.guild_id = guild_id;
+    }
+
+    public getClient() {
+        return this.client;
     }
 
     public async registerCommands() {
@@ -97,6 +102,7 @@ export default class DiscordClient {
             new SignupCommand(this.client),
             new ListPlayersCommand(this.client),
             new LeaveCommand(this.client),
+            new StartCupCommand(this.client),
         ];
 
         await this.registerCommands();

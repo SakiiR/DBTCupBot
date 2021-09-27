@@ -11,14 +11,14 @@ export default class EnrollCommand extends Command {
     async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
 
     async onCommandInteraction(interaction: CommandInteraction) {
-        const { username, discriminator } = interaction.user;
+        const { username, discriminator, id: discordId } = interaction.user;
         const discordTag = `${username}#${discriminator}`;
 
         const user = await User.findOne({ discordTag });
         if (!!user)
             return await interaction.reply(`You are already enroll'd into the system`);
 
-        const newUser = new User({ discordTag, rating: 0, admin: false });
+        const newUser = new User({ discordTag, discordId, rating: 0, admin: false });
         await newUser.save();
 
         return await interaction.reply(`You have been enroll'd into the system`);

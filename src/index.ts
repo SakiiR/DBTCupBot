@@ -7,6 +7,7 @@ import DiscordClient from './discord/client';
 
 import mongoose from "mongoose";
 import User from './models/user';
+import { Client } from 'discord.js';
 
 async function connectMongo() {
     const url = Config.mongo_url;
@@ -23,13 +24,32 @@ async function connectMongo() {
 
 }
 
-async function fixtures() {
+async function getDiscordIdByTag(client: DiscordClient, tag: string): Promise<string> {
+    const guild = await client.getClient().guilds.fetch(Config.discord_guild_id);
+    const [name] = tag.split("#");
+    const guildMember = await guild.members.fetch({
+        query: name,
+        limit: 1
+    })
+    const member = guildMember.first();
+    const discordId = member?.user?.id;
+
+    return discordId;
+}
+
+async function fixtures(client: DiscordClient) {
     for (const discordTag of Config.admin_tags) {
         const user = new User();
 
+        const discordId = await getDiscordIdByTag(client, discordTag);
+
+        user.discordId = discordId;
         user.discordTag = discordTag;
+
         user.admin = true;
         user.rating = 0;
+
+
 
         try {
             await user.save();
@@ -47,12 +67,13 @@ async function main() {
 
     await connectMongo();
 
-    await fixtures();
 
     const client = new DiscordClient(Config.discord_token, Config.discord_client_id, Config.discord_guild_id);
 
-
     await client.start();
+
+    await fixtures(client);
+
 
     signale.success("Bot started");
 }
