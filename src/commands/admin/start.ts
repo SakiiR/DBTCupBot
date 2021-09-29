@@ -7,7 +7,6 @@ import enforceAdmin from '../../utils/enforce-admin-interaction';
 import Command from '../command';
 
 
-
 export default class StartCupCommand extends Command {
     _name = 'start';
     _description = 'Starts the specified cup';
@@ -16,31 +15,29 @@ export default class StartCupCommand extends Command {
         const { values: [value] } = interaction;
         const cup = await Cup.findById(value).populate('challengers');
 
-        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
 
+        if (!cup) {
+            return await interaction.reply('Error: cup is null');
+        }
 
-        // if (cup.challengers.length < 2) {
-        //     return await interaction.reply('Cup needs at least 2 challengers');
-        // }
+        if (cup.challengers.length < 2) {
+            return await interaction.reply('Cup needs at least 2 challengers');
+        }
 
         const cm = new CupManager(this.client, cup);
 
         await cm.start();
 
-        // const everyoneRole = guild.roles.everyone.id;
 
-        // const channel = await guild.channels.create('test-toto', {});
+        const participants = cup.challengers.map((challenger) => `\`${challenger.epicName}\``).join(", ");
 
-        // Eventually add new groups ( by name in the config, e.q: Twitchers, Admins etc)
-        // await channel.permissionOverwrites.set([
-        //     {
-        //         id: everyoneRole,
-        //         deny: [Permissions.FLAGS.VIEW_CHANNEL],
-        //     }
-        // ]);
+        let msg = (
+            `Starting cup **${cup.title}**\n` +
+            `Participants (**${cup.challengers.length}**): ${participants}`
+        )
 
-
-        return await interaction.reply(`Starting cup **${cup.title}**`);
+        await interaction.reply(msg);
+        return;
     }
 
     async onCommandInteraction(interaction: CommandInteraction) {

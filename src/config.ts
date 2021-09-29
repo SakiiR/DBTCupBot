@@ -10,5 +10,7 @@ export default class Config {
 
     // Diabotical
     static default_map_pool = ['raya', 'bioplant', 'pavillon x', 'restless', 'skybreak', 'sanctum', 'amberfall'];
-    static default_type = "double_elemination";
+    static default_type = "double_elimination";
+
+    static fill_database: boolean = (process.env.FILL_DATABASE === 'true' ? true : false);
 }

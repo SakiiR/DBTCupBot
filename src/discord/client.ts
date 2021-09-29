@@ -2,6 +2,7 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { Client, Intents } from 'discord.js';
 import signale from 'signale';
+import CleanChannelsCommand from '../commands/admin/clean-channels';
 import CreateAdminCommand from '../commands/admin/create-admin';
 import CreateCupCommand from '../commands/admin/create-cup';
 import ListAdminsCommand from '../commands/admin/list-admins';
@@ -12,6 +13,7 @@ import LeaveCommand from '../commands/leave';
 import LinkEpicCommand from '../commands/link-epic';
 import ListPlayersCommand from '../commands/list-challengers';
 import PingCommand from '../commands/ping';
+import RollCommand from '../commands/roll';
 import SignupCommand from '../commands/signup';
 
 
@@ -103,6 +105,8 @@ export default class DiscordClient {
             new ListPlayersCommand(this.client),
             new LeaveCommand(this.client),
             new StartCupCommand(this.client),
+            new RollCommand(this.client),
+            new CleanChannelsCommand(this.client)
         ];
 
         await this.registerCommands();

@@ -7,7 +7,7 @@ import DiscordClient from './discord/client';
 
 import mongoose from "mongoose";
 import User from './models/user';
-import { Client } from 'discord.js';
+import DatabaseFixtures from './data/data';
 
 async function connectMongo() {
     const url = Config.mongo_url;
@@ -73,6 +73,10 @@ async function main() {
     await client.start();
 
     await fixtures(client);
+
+    if (Config.fill_database) {
+        await DatabaseFixtures.fill();
+    }
 
 
     signale.success("Bot started");

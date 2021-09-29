@@ -1,4 +1,5 @@
 import axios from 'axios'
+import signale from 'signale';
 
 const BASE = `https://api.diabotical.com/api/v0/diabotical`;
 
@@ -53,6 +54,9 @@ export default class DiaboticalService {
 
     static async getUserRating(userId: string, mode: string = "md_duel"): Promise<number> {
         const response = await axios.get(`${BASE}/users/${userId}/rating`);
+
+        signale.debug(`Rating of ${userId}`);
+        signale.debug({ ...response.data });
 
         const { ratings } = response.data;
 

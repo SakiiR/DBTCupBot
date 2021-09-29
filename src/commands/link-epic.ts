@@ -1,5 +1,6 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, SelectMenuInteraction } from 'discord.js';
+import signale from 'signale';
 import User from '../models/user';
 import DiaboticalService from '../services/diabotical';
 import Command from './command';
@@ -24,6 +25,8 @@ export default class LinkEpicCommand extends Command {
 
         user.epicId = epicId;
         user.epicName = epicUser.name;
+        user.rating = (await DiaboticalService.getUserRating(epicId) || 0);
+
 
         await user.save();
 
