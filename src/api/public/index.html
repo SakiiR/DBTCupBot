@@ -1,0 +1,168 @@
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+
+        <title>Create and view Stages</title>
+
+        <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/brackets-viewer/dist/brackets-viewer.min.css"
+        />
+        <script
+            type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/brackets-viewer/dist/brackets-viewer.min.js"
+        ></script>
+    </head>
+
+    <body style="background: gray">
+        <!-- This div will be used as the root for the library. It must be **perfectly** empty to prevent a FOUC. -->
+        <div id="bracketsViewerExample" class="brackets-viewer"></div>
+
+        <div id="createNewBracket"></div>
+
+        <script type="text/javascript">
+            const BRACKETS = 'brackets';
+            const INPUT_MASK = 'input-mask';
+            const INPUT_SUBMIT = 'input-submit';
+            const OPPONENT1 = 'opponent1';
+            const OPPONENT2 = 'opponent2';
+            const RADIO_OPPONENT1 = 'won-opponent1';
+            const RADIO_OPPONENT2 = 'won-opponent2';
+            const RADIO_DRAW = 'won-draw';
+            const ELEMENT_ID = 'bracketsViewerExample';
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+
+            function listBrackets() {
+                const storageData =
+                    JSON.parse(localStorage.getItem(BRACKETS)) || {};
+                const bracketsList = document.createElement('ul');
+
+                for (const [key, value] of Object.entries(storageData)) {
+                    const bracketItem = document.createElement('li');
+                    const bracketLink = document.createElement('a');
+                    bracketLink.href = '?id=' + key;
+                    bracketLink.innerText = 'Go to ID: ' + key;
+
+                    bracketItem.appendChild(bracketLink);
+                    bracketsList.appendChild(bracketItem);
+                }
+
+                document.body.insertBefore(
+                    bracketsList,
+                    document.getElementById(ELEMENT_ID)
+                );
+            }
+
+            function renderBracket(data) {
+                window.bracketsViewer.render(
+                    {
+                        stages: data.stage,
+                        matches: data.match,
+                        matchGames: data.match_game,
+                        participants: data.participant,
+                    },
+                    {
+                        selector: '#' + ELEMENT_ID,
+                        participantOriginPlacement: 'before',
+                        separatedChildCountLabel: true,
+                        showSlotsOrigin: true,
+                        showLowerBracketSlotsOrigin: true,
+                        highlightParticipantOnHover: true,
+                    }
+                );
+            }
+
+            function getQueryParam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+
+            async function createBracket(id) {
+                const url = `/api/cup/${id}`;
+                const response = await fetch(url);
+                const json = await response.json();
+
+                const { cup, cupData: data } = json;
+
+                if (!data) return null;
+
+                // This is optional. You must do it before render().
+                window.bracketsViewer.setParticipantImages(
+                    data.participant.map((participant) => ({
+                        participantId: participant.id,
+                        imageUrl:
+                            'https://github.githubassets.com/pinned-octocat.svg',
+                    }))
+                );
+
+                window.bracketsViewer.onMatchClicked = (match) => {
+                    (async function () {
+                        console.log(match);
+
+                        let inputMask = document.getElementById(INPUT_MASK);
+                        inputMask.style.display = 'flex';
+
+                        let inputButton = document.getElementById(INPUT_SUBMIT);
+                        inputButton.onclick = async () => {
+                            const opponent1 =
+                                document.getElementById(OPPONENT1).value;
+                            const opponent2 =
+                                document.getElementById(OPPONENT2).value;
+
+                            let opponent1Data = {
+                                score: opponent1,
+                            };
+
+                            let opponent2Data = {
+                                score: opponent2,
+                            };
+
+                            if (
+                                document.getElementById(RADIO_OPPONENT1).checked
+                            ) {
+                                opponent1Data['result'] = 'win';
+                            }
+
+                            if (
+                                document.getElementById(RADIO_OPPONENT2).checked
+                            ) {
+                                opponent2Data['result'] = 'win';
+                            }
+
+                            if (document.getElementById(RADIO_DRAW).checked) {
+                                opponent1Data['result'] = 'draw';
+                                opponent2Data['result'] = 'draw';
+                            }
+
+                            console.log(
+                                document.getElementById(RADIO_OPPONENT1).checked
+                            );
+                            console.log(
+                                document.getElementById(RADIO_OPPONENT2).checked
+                            );
+
+                            await window.bracketsManager.import(data);
+
+                            await window.bracketsManager.update.match({
+                                id: match.id,
+                                opponent1: opponent1Data,
+                                opponent2: opponent2Data,
+                            });
+
+                            window.bracketsManager.storage
+                                .select('match', 0)
+                                .then((match) => {
+                                    window.bracketsViewer.updateMatch(match);
+                                });
+                        };
+                    })();
+                };
+
+                renderBracket(data);
+            }
+
+            createBracket(getQueryParam('id'));
+        </script>
+    </body>
+</html>

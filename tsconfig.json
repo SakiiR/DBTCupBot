@@ -1,6 +1,8 @@
 {
-  "compilerOptions": {
-    "esModuleInterop": true,
-    "lib": ["ES2021"]
-  }
+    "compilerOptions": {
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "lib": ["ES2021"]
+    }
 }

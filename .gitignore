@@ -2,3 +2,7 @@ node_modules/
 
 .env
 yarn-error.log
+
+._data
+
+cup-*.json

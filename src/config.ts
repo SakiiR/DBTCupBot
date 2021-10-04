@@ -7,10 +7,13 @@ export default class Config {
 
     // Mongo
     static mongo_url = (process.env.MONGO_URL || 'mongodb://localhost:27017/dbtcup');
+    static fill_database: boolean = (process.env.FILL_DATABASE === 'true' ? true : false);
 
     // Diabotical
     static default_map_pool = ['raya', 'bioplant', 'pavillon x', 'restless', 'skybreak', 'sanctum', 'amberfall'];
     static default_type = "double_elimination";
 
-    static fill_database: boolean = (process.env.FILL_DATABASE === 'true' ? true : false);
+
+    // API
+    static api_port = parseInt(process.env.API_PORT || '31337');
 }

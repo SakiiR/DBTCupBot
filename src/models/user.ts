@@ -1,4 +1,5 @@
 import { model, Schema } from 'mongoose';
+import uuid from '../utils/uuid';
 
 export interface IUser {
     _id: string;
@@ -12,6 +13,9 @@ export interface IUser {
 
 
 const schema = new Schema<IUser>({
+    _id: {
+        type: String, default: uuid
+    },
     epicId: { type: String, required: false, unique: false },
     epicName: { type: String, required: false, unique: false },
     discordTag: { type: String, required: false, unique: true },

@@ -1,4 +1,5 @@
 import { model, Schema } from 'mongoose';
+import uuid from '../utils/uuid';
 import { IUser } from './user';
 
 export interface ICup {
@@ -14,9 +15,12 @@ export interface ICup {
 
 
 const schema = new Schema<ICup>({
+    _id: {
+        type: String, default: uuid
+    },
     type: { type: String, required: true },
     title: { type: String, required: true, unique: true },
-    challengers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    challengers: [{ type: String, ref: 'User' }],
     maps: [{ type: String }],
     over: { type: Boolean, default: false },
     started: { type: Boolean, default: false },
