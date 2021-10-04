@@ -14,13 +14,19 @@
         ></script>
     </head>
 
-    <body style="background: gray">
+    <body>
+        <ul class="cup-list"></ul>
         <!-- This div will be used as the root for the library. It must be **perfectly** empty to prevent a FOUC. -->
         <div id="bracketsViewerExample" class="brackets-viewer"></div>
 
         <div id="createNewBracket"></div>
 
         <script type="text/javascript">
+            const $ = (s) => document.querySelector(s);
+            const $$ = (s) => document.querySelectorAll(s);
+            const sleep = (ms) =>
+                new Promise((resolve) => setTimeout(resolve, ms));
+
             const BRACKETS = 'brackets';
             const INPUT_MASK = 'input-mask';
             const INPUT_SUBMIT = 'input-submit';
@@ -30,29 +36,6 @@
             const RADIO_OPPONENT2 = 'won-opponent2';
             const RADIO_DRAW = 'won-draw';
             const ELEMENT_ID = 'bracketsViewerExample';
-            const urlParams = new URLSearchParams(window.location.search);
-            const id = urlParams.get('id');
-
-            function listBrackets() {
-                const storageData =
-                    JSON.parse(localStorage.getItem(BRACKETS)) || {};
-                const bracketsList = document.createElement('ul');
-
-                for (const [key, value] of Object.entries(storageData)) {
-                    const bracketItem = document.createElement('li');
-                    const bracketLink = document.createElement('a');
-                    bracketLink.href = '?id=' + key;
-                    bracketLink.innerText = 'Go to ID: ' + key;
-
-                    bracketItem.appendChild(bracketLink);
-                    bracketsList.appendChild(bracketItem);
-                }
-
-                document.body.insertBefore(
-                    bracketsList,
-                    document.getElementById(ELEMENT_ID)
-                );
-            }
 
             function renderBracket(data) {
                 window.bracketsViewer.render(
@@ -78,7 +61,39 @@
                 return urlParams.get(name);
             }
 
+            function createCupLink(cup) {
+                const li = document.createElement('li');
+
+                const a = document.createElement('a');
+
+                a.href = `?id=${cup._id}`;
+                a.innerText = cup.title;
+
+                li.appendChild(a);
+
+                return li;
+            }
+
+            async function listCups() {
+                const url = `/api/cups`;
+
+                const list = $('.cup-list');
+
+                list.innerHtml = '';
+
+                const response = await fetch(url);
+                const json = await response.json();
+
+                const cups = json;
+
+                for (const cup of cups) {
+                    list.appendChild(createCupLink(cup));
+                }
+            }
+
             async function createBracket(id) {
+                if (!id) return;
+
                 const url = `/api/cup/${id}`;
                 const response = await fetch(url);
                 const json = await response.json();
@@ -88,13 +103,13 @@
                 if (!data) return null;
 
                 // This is optional. You must do it before render().
-                window.bracketsViewer.setParticipantImages(
-                    data.participant.map((participant) => ({
-                        participantId: participant.id,
-                        imageUrl:
-                            'https://github.githubassets.com/pinned-octocat.svg',
-                    }))
-                );
+                // window.bracketsViewer.setParticipantImages(
+                //     data.participant.map((participant) => ({
+                //         participantId: participant.id,
+                //         imageUrl:
+                //             'https://github.githubassets.com/pinned-octocat.svg',
+                //     }))
+                // );
 
                 window.bracketsViewer.onMatchClicked = (match) => {
                     (async function () {
@@ -161,6 +176,8 @@
 
                 renderBracket(data);
             }
+
+            listCups();
 
             createBracket(getQueryParam('id'));
         </script>

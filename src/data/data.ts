@@ -90,7 +90,8 @@ export default class DatabaseFixtures {
             title: "Dev Test Cup",
             over: false,
             started: false,
-            type: Config.default_type
+            type: Config.default_type,
+            maps: [...Config.default_map_pool]
         })
 
 

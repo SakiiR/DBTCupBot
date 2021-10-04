@@ -1,5 +1,5 @@
 import { BracketsManager, JsonDatabase } from 'brackets-manager';
-import { Status as MatchStatus, Match } from 'brackets-model';
+import { Match, Seeding, Status as MatchStatus } from 'brackets-model';
 import { Channel, Client, Permissions } from 'discord.js';
 import signale from 'signale';
 import Config from '../config';
@@ -86,6 +86,11 @@ export default class CupManager {
 
         await channel.send(await getMatchChannelWelcomeMessage(this.cup.title, op1User, op2User, match));
 
+        // TODO: register channel handler
+        // /report
+        // /force-score
+        // map vote commands
+
         return channel;
     }
 
@@ -103,6 +108,23 @@ export default class CupManager {
         }
     }
 
+    private async getSeeding(): Promise<Seeding> {
+
+
+        const sortedByRankPos = [...this.cup.challengers].sort((a: IUser, b: IUser) => b.rating - b.rating);
+
+
+        const powerOfTwo = (num: number) => Math.log2(num) % 1 === 0;
+        while (!powerOfTwo(sortedByRankPos.length)) {
+            sortedByRankPos.push(null);
+        }
+
+
+        const seeding: Seeding = sortedByRankPos.map((u: IUser | null) => u ? u.epicName : null) as Seeding;
+
+        return seeding
+    }
+
     public async start() {
         if (!this.cup) {
             signale.fatal(`Starting cup failure: cup is null`);
@@ -110,16 +132,12 @@ export default class CupManager {
         }
         signale.info(`Starting cup ${this.cup.title}`);
 
-        const participants = this.cup.challengers.map((u) => u.epicName);
-
-        const seeding = participants;
-
-        const powerOfTwo = (num: number) => Math.log2(num) % 1 === 0;
-        while (!powerOfTwo(seeding.length)) {
-            seeding.push(null);
-        }
 
         const manager = this.getManager();
+
+        const seeding = await this.getSeeding();
+
+        signale.debug({ seeding });
 
         await manager.create({
             name: this.cup.title,

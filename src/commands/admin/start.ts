@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, MessageActionRow, MessageSelectMenu, SelectMenuInteraction } from "discord.js";
-import Config from '../../config';
 import CupManager from '../../cup/cup-manager';
 import Cup from '../../models/cup';
+import { IUser } from '../../models/user';
 import enforceAdmin from '../../utils/enforce-admin-interaction';
 import Command from '../command';
 
@@ -22,6 +22,14 @@ export default class StartCupCommand extends Command {
 
         if (cup.challengers.length < 2) {
             return await interaction.reply('Cup needs at least 2 challengers');
+        }
+
+        const challengers: IUser[] = cup.challengers as IUser[];
+
+        for (const challenger of challengers) {
+            if (!challenger.epicId || !challenger.epicName) {
+                return await interaction.reply('');
+            }
         }
 
         const cm = new CupManager(this.client, cup);

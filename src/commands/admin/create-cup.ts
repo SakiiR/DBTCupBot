@@ -1,8 +1,8 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, SelectMenuInteraction } from "discord.js";
-import enforceAdmin from '../../utils/enforce-admin-interaction';
-import Cup from "../../models/cup";
 import Config from '../../config';
+import Cup from "../../models/cup";
+import enforceAdmin from '../../utils/enforce-admin-interaction';
 import Command from '../command';
 
 
@@ -26,7 +26,7 @@ export default class CreateCupCommand extends Command {
 
         cup.title = cupName;
         cup.challengers = [];
-        cup.maps = Config.default_map_pool;
+        cup.maps = [...Config.default_map_pool];
         cup.type = Config.default_type;
 
         await cup.save();
