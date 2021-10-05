@@ -21,12 +21,12 @@ export default class DatabaseFixtures {
     static async fill() {
         const users = [
             new User({
-                "discordId": "119786129011638274",
-                "discordTag": "Nykho#1337",
-                "admin": false,
+                "discordId": "208187617055997952",
+                "discordTag": "Chamo#1049",
+                "admin": true,
                 "rating": 22,
-                "epicId": "4778a0c993a7416e8635526397aaf85e",
-                "epicName": "Nykho"
+                "epicId": "1cf88f28703c4e5582cc2d92aaf92d17",
+                "epicName": "Ξ Chamo"
             }),
             new User({
                 "discordId": "119758326706733056",
@@ -37,12 +37,12 @@ export default class DatabaseFixtures {
                 "epicName": "SakiiR au Beurre"
             }),
             new User({
-                "discordId": "208187617055997952",
-                "discordTag": "Chamo#1049",
-                "admin": true,
+                "discordId": "119786129011638274",
+                "discordTag": "Nykho#1337",
+                "admin": false,
                 "rating": 11,
-                "epicId": "1cf88f28703c4e5582cc2d92aaf92d17",
-                "epicName": "Ξ Chamo"
+                "epicId": "4778a0c993a7416e8635526397aaf85e",
+                "epicName": "Nykho"
             }),
             new User({
                 "discordId": "324218231298588684",

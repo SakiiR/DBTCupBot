@@ -28,13 +28,10 @@ export default class StartCupCommand extends Command {
 
         for (const challenger of challengers) {
             if (!challenger.epicId || !challenger.epicName) {
-                return await interaction.reply('');
+                return await interaction.reply(`The user ${challenger.discordTag} didn't link its epic account`);
             }
         }
 
-        const cm = new CupManager(this.client, cup);
-
-        await cm.start();
 
 
         const participants = cup.challengers.map((challenger) => `\`${challenger.epicName}\``).join(", ");
@@ -45,6 +42,11 @@ export default class StartCupCommand extends Command {
         )
 
         await interaction.reply(msg);
+
+        const cm = new CupManager(this.client, cup);
+
+        await cm.start();
+
         return;
     }
 
