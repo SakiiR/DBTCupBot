@@ -13,6 +13,7 @@ import LeaveCommand from '../commands/leave';
 import LinkEpicCommand from '../commands/link-epic';
 import ListPlayersCommand from '../commands/list-challengers';
 import PingCommand from '../commands/ping';
+import ReportCommand from '../commands/report';
 import RollCommand from '../commands/roll';
 import SignupCommand from '../commands/signup';
 
@@ -106,7 +107,8 @@ export default class DiscordClient {
             new LeaveCommand(this.client),
             new StartCupCommand(this.client),
             new RollCommand(this.client),
-            new CleanChannelsCommand(this.client)
+            new CleanChannelsCommand(this.client),
+            new ReportCommand(this.client)
         ];
 
         await this.registerCommands();

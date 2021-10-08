@@ -2,12 +2,13 @@ import { Match } from "brackets-model";
 import { v4 as uuidv4 } from "uuid";
 import { ICup } from "../models/cup";
 import { IUser } from "../models/user";
+import getDiscordTag from "./discord-tag";
 
 export default async function getMatchChannelWelcomeMessage(cup: ICup, high: IUser, low: IUser, match: Match): Promise<string> {
     const password = uuidv4();
 
-    const tag1 = `<@${high.discordId}>`;
-    const tag2 = `<@${low.discordId}>`;
+    const tag1 = getDiscordTag(high.discordId);
+    const tag2 = getDiscordTag(low.discordId);
 
     return `
     @here

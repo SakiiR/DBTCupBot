@@ -1,5 +1,5 @@
 import { BracketsManager, JsonDatabase } from 'brackets-manager';
-import { Match, Seeding, Status as MatchStatus } from 'brackets-model';
+import { Match as BracketMatch, Seeding, Status as MatchStatus } from 'brackets-model';
 import {
     CategoryChannel,
     Channel,
@@ -20,18 +20,27 @@ import {
 } from 'discord.js';
 import signale from 'signale';
 import Config from '../config';
-import { ICup } from '../models/cup';
+import Cup, { ICup } from '../models/cup';
 import User, { IUser } from '../models/user';
+import DiaboticalService from '../services/diabotical';
+import getDiscordTag from '../utils/discord-tag';
 import getMatchChannelWelcomeMessage from '../utils/match-channel-welcome';
 import Serializer from '../utils/serialize';
 import BO1 from './pick-ban/bo1';
 import BO3 from './pick-ban/bo3';
 import { PickBan, Player } from './pick-ban/pick-ban';
 
+import Match from "../models/match";
+
 interface RegisterChannelResponse {
-    channel: TextChannel
-    highSeedPlayer: IUser
-    lowSeedPlayer: IUser
+    channel: TextChannel;
+    highSeedPlayer: IUser;
+    lowSeedPlayer: IUser;
+}
+
+export interface MatchChannelTopic {
+    match?: BracketMatch;
+    cupId?: string;
 }
 
 export default class CupManager {
@@ -64,8 +73,42 @@ export default class CupManager {
         return await User.findOne({ epicName });
     }
 
+    public async reportMatchScore(match: BracketMatch): Promise<void> {
+        const matchToBePlayed = match.child_count;
+        const op1User = await this.getUserByParticipantId(match.opponent1.id);
+        const op2User = await this.getUserByParticipantId(match.opponent2.id);
 
-    public async createChannel(match: Match): Promise<RegisterChannelResponse> {
+        const maps = await DiaboticalService.getLastMatches(op1User.epicId, matchToBePlayed);
+
+        const m = new Match();
+
+        m.bracketMatchData = match;
+        m.maps = maps;
+        m.highSeedPlayer = op1User;
+        m.lowSeedPlayer = op2User;
+
+        await m.save();
+
+        const cup = await Cup.findOne({ _id: this.cup._id });
+
+        cup.matches = [...cup.matches, m._id];
+
+        await cup.save();
+
+        const manager = this.getManager();
+
+        signale.debug({ match });
+        await manager.update.match({
+            id: match.id,
+            status: MatchStatus.Completed,
+            opponent1: { id: match.opponent1.id, score: 1, result: 'loss' },
+            opponent2: { id: match.opponent2.id, score: 2, result: 'win' }
+        })
+
+
+    }
+
+    public async createChannel(match: BracketMatch): Promise<RegisterChannelResponse> {
         const guild = await this.client.guilds.fetch(Config.discord_guild_id);
         const everyoneRole = guild.roles.everyone.id;
         const manager = this.getManager();
@@ -137,7 +180,10 @@ export default class CupManager {
         ];
 
         const channelName = `${match.id} ${highSeedPlayer.epicName} vs ${lowSeedPlayer.epicName}`;
-        const topic = Serializer.serialize<Match>(match);
+        const topic = Serializer.serialize<MatchChannelTopic>({
+            match,
+            cupId: this.cup._id,
+        });
         const channel = await guild.channels.create(channelName, {
             topic,
             permissionOverwrites,
@@ -155,108 +201,155 @@ export default class CupManager {
             )
         );
 
-        // TODO: register channel handler
-        // /report
-        // /force-score
-        // map vote commands
-
         return { channel, highSeedPlayer, lowSeedPlayer };
     }
 
     public async registerPickBan(
         channel: TextChannel,
-        match: Match,
+        match: BracketMatch,
         highSeedPlayer: IUser,
         lowSeedPlayer: IUser
     ): Promise<void> {
-        let bo = match.child_count === 1 ? new BO1(this.cup.maps) : new BO3(this.cup.maps);
+        let bo =
+            match.child_count === 1
+                ? new BO1([...this.cup.maps]) // Actually do a copy of this because we want to compare in the getMapListMessage function, And we don't want the BO class to modify it
+                : new BO3([...this.cup.maps]);
+
+        const $this = this;
 
         function getMapListMessage(maps: string[]): string {
             let msg = '';
 
+            const otherMaps = [...$this.cup.maps].filter(
+                (m) => maps.indexOf(m) === -1
+            );
+
             msg += `Map list: \n`;
-            msg += '```'
+            msg += '```';
+
             for (const map of maps) {
-                msg += `• ${map}\n`
+                msg += `• ${map}\n`;
             }
-            msg += '```'
+
+            for (const map of otherMaps) {
+                msg += `• ~~${map}~~\n`;
+            }
+
+            msg += '```';
 
             return msg;
         }
 
-        const mapListMessage = await channel.send(getMapListMessage(bo.remainingMaps()));
-
+        const mapListMessage = await channel.send(
+            getMapListMessage(bo.remainingMaps())
+        );
 
         async function buildMapPrompt(): Promise<Message> {
             const step = bo.whoPickBan();
-            const player = step.player == Player.PlayerOne ? highSeedPlayer : lowSeedPlayer;
+            const player =
+                step.player == Player.PlayerOne
+                    ? highSeedPlayer
+                    : lowSeedPlayer;
             const pickBan = step.pickBan === PickBan.Pick ? 'pick' : 'ban';
-            const msg = `Please ${player.discordTag}, choose a map to ${pickBan}`;
+            const msg = `Please ${getDiscordTag(
+                player.discordId
+            )}, choose a map to **${pickBan}**`;
 
-            const row = new MessageActionRow()
-                .addComponents(
-                    new MessageSelectMenu()
-                        .setCustomId('pickban')
-                        .setPlaceholder(msg)
-                        .addOptions(bo.remainingMaps().map(m => ({ label: m, value: m })))
-                );
+            const row = new MessageActionRow().addComponents(
+                new MessageSelectMenu()
+                    .setCustomId('pickban')
+                    .setPlaceholder(`Choose a map`)
+                    .addOptions(
+                        bo.remainingMaps().map((m) => ({ label: m, value: m }))
+                    )
+            );
 
             const promptPickBan = await channel.send({
                 content: msg,
-                components: [row]
-            })
+                components: [row],
+            });
 
             return promptPickBan;
         }
 
         let message = await buildMapPrompt();
 
-        const collector = channel.createMessageComponentCollector({ componentType: 'SELECT_MENU', time: 60000000 });
+        const collector = channel.createMessageComponentCollector({
+            componentType: 'SELECT_MENU',
+            time: 60000000,
+        });
+
+        let history = `Initial map list: ${this.cup.maps.join(', ')}\n`;
 
         collector.on('collect', async (interaction: SelectMenuInteraction) => {
             const step = bo.whoPickBan();
-            const player = step.player == Player.PlayerOne ? highSeedPlayer : lowSeedPlayer;
+            const player =
+                step.player == Player.PlayerOne
+                    ? highSeedPlayer
+                    : lowSeedPlayer;
 
             if (interaction.user.id !== player.discordId) {
-                await interaction.reply({ content: `Wait for your turn!`, ephemeral: true });
-                return;
+                // Its fine if its SakiiR
+                if (Config.admin_tags.indexOf(interaction.user.tag) === -1) {
+                    await interaction.reply({
+                        content: `Wait for your turn!`,
+                        ephemeral: true,
+                    });
+                    return;
+                }
             }
 
+            if (message.deletable) {
+                await message.delete();
+            }
 
             const [selectedMap] = interaction.values;
 
             if (step.pickBan === PickBan.Pick) {
                 bo.pick(selectedMap);
+                history += `${player.epicName.padEnd(
+                    20,
+                    ' '
+                )}: +${selectedMap}\n`;
             }
 
             if (step.pickBan === PickBan.Ban) {
-                bo.ban(selectedMap)
+                bo.ban(selectedMap);
+                history += `${player.epicName.padEnd(
+                    20,
+                    ' '
+                )}: -${selectedMap}\n`;
             }
 
-            let answer = ''
+            let answer = '';
 
-            answer += `You choose ${selectedMap}\n`;
-
+            // answer += `You choose ${selectedMap}\n`;
 
             if (bo.finished()) {
-                answer += `Ready to go !!`;
+                answer += `Ready to go =)\n\n`;
                 answer += `Your maps are **${bo.get()}**\n`;
+                answer += `HF GL !\n`;
+                answer += `\n\n`;
+                answer += `Map vote history:\n`;
+                answer += `\`\`\`\n`;
+                answer += history;
+                answer += `\`\`\`\n`;
+
+                if (mapListMessage.deletable) await mapListMessage.delete();
             } else {
-                await mapListMessage.edit(getMapListMessage(bo.remainingMaps()));
+                await mapListMessage.edit(
+                    getMapListMessage(bo.remainingMaps())
+                );
                 message = await buildMapPrompt();
             }
 
-
-            await interaction.reply(answer);
-
+            if (answer) await interaction.reply(answer);
         });
 
-
-        signale.debug("end of loop");
-
+        signale.debug('end of loop');
     }
 
-    public async hasChannel(match: Match): Promise<boolean> {
+    public async hasChannel(match: BracketMatch): Promise<boolean> {
         const guild = await this.client.guilds.fetch(Config.discord_guild_id);
 
         const channels = await guild.channels.fetch();
@@ -278,9 +371,15 @@ export default class CupManager {
             if (match.status === MatchStatus.Ready) {
                 // Create channels and message/command handler etc etc
                 if (!(await this.hasChannel(match))) {
-                    const { channel, highSeedPlayer, lowSeedPlayer } = await this.createChannel(match);
+                    const { channel, highSeedPlayer, lowSeedPlayer } =
+                        await this.createChannel(match);
 
-                    await this.registerPickBan(channel, match, highSeedPlayer, lowSeedPlayer);
+                    await this.registerPickBan(
+                        channel,
+                        match,
+                        highSeedPlayer,
+                        lowSeedPlayer
+                    );
                 }
             }
         }
