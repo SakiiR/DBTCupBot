@@ -6,13 +6,16 @@
   "author": "SakiiR <sakiir@protonmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "npx nodemon"
+    "start": "npx nodemon",
+    "build": "npx tsc"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.1",
     "@types/express": "^4.17.13",
     "@types/multer": "^1.4.7",
+    "@types/node": "^16.10.3",
     "@types/signale": "^1.4.2",
+    "@types/uuid": "^8.3.1",
     "nodemon": "^2.0.12",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"

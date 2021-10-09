@@ -5,7 +5,6 @@ import Command from './command';
 
 import CupManager, { MatchChannelTopic } from '../cup/cup-manager';
 import Cup from '../models/cup';
-import signale from 'signale';
 
 
 /**
@@ -28,7 +27,11 @@ export default class ReportCommand extends Command {
 
         const cupManager = new CupManager(this.client, cup);
 
-        await cupManager.reportMatchScore(matchChannelTopic.match);
+        const res = await cupManager.reportMatchScore(matchChannelTopic.match);
+        if (!res)
+            return await interaction.reply('Cannot report match score, contact admin');
+
+        if (channel.deletable) channel.delete();
 
         return await interaction.reply('Match score reported ! thanks');
     }

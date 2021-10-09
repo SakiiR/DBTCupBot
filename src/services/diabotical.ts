@@ -40,6 +40,7 @@ export interface DiaboticalUser {
     battlepass_level: number;
     twitch_id?: any;
     twitch_name?: any;
+    team_idx?: number;
 }
 
 export interface W {
@@ -103,6 +104,8 @@ export interface DiaboticalMatch {
     modifier_instagib: number;
     modifier_physics: number;
     match_private: boolean;
+    clients: DiaboticalUser[];
+    teams: any[];
 }
 
 export default class DiaboticalService {
@@ -130,6 +133,18 @@ export default class DiaboticalService {
         return 0;
     }
 
+    static async getMatch(
+        matchId: string,
+    ): Promise<DiaboticalMatch> {
+        const response = await axios.get(
+            `${BASE}/match/${matchId}`
+        );
+
+        const { data: { match } } = response;
+
+        return match;
+    }
+
     static async getLastMatches(
         userId: string,
         count: number = 1
@@ -142,6 +157,12 @@ export default class DiaboticalService {
             data: { matches },
         } = response;
 
-        return matches;
+        const detailedMatches = [];
+
+        for (const match of matches) {
+            detailedMatches.push(await this.getMatch(match.match_id));
+        }
+
+        return detailedMatches;
     }
 }

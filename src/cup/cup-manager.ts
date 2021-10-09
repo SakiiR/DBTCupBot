@@ -1,5 +1,9 @@
 import { BracketsManager, JsonDatabase } from 'brackets-manager';
-import { Match as BracketMatch, Seeding, Status as MatchStatus } from 'brackets-model';
+import {
+    Match as BracketMatch,
+    Seeding,
+    Status as MatchStatus,
+} from 'brackets-model';
 import {
     CategoryChannel,
     Channel,
@@ -30,10 +34,10 @@ import BO1 from './pick-ban/bo1';
 import BO3 from './pick-ban/bo3';
 import { PickBan, Player } from './pick-ban/pick-ban';
 
-import Match from "../models/match";
+import Match from '../models/match';
 
 interface RegisterChannelResponse {
-    channel: TextChannel;
+    channel?: TextChannel | null;
     highSeedPlayer: IUser;
     lowSeedPlayer: IUser;
 }
@@ -73,12 +77,48 @@ export default class CupManager {
         return await User.findOne({ epicName });
     }
 
-    public async reportMatchScore(match: BracketMatch): Promise<void> {
+    public async forceMatchScore(match: BracketMatch, leftScore: number, rightScore: number): Promise<boolean> {
+        const manager = this.getManager();
+
+        const op1User = await this.getUserByParticipantId(match.opponent1.id);
+        const op2User = await this.getUserByParticipantId(match.opponent2.id);
+
+
+        const matchUpdate = {
+            id: match.id,
+            status: MatchStatus.Completed,
+            opponent1: {
+                id: match.opponent1.id,
+                score: leftScore,
+                result: leftScore > rightScore ? 'win' : 'loss',
+            },
+            opponent2: {
+                id: match.opponent2.id,
+                score: rightScore,
+                result: rightScore < rightScore ? 'win' : 'loss',
+            },
+        };
+
+        await manager.update.match({ ...(matchUpdate as BracketMatch) });
+
+        signale.debug({ msg: "Updating match", matchUpdate });
+
+        // don't await this ;) We need to quicly answer to the interaction! 
+        this.createChannels();
+
+
+        return true;
+    }
+
+    public async reportMatchScore(match: BracketMatch): Promise<boolean> {
         const matchToBePlayed = match.child_count;
         const op1User = await this.getUserByParticipantId(match.opponent1.id);
         const op2User = await this.getUserByParticipantId(match.opponent2.id);
 
-        const maps = await DiaboticalService.getLastMatches(op1User.epicId, matchToBePlayed);
+        const maps = await DiaboticalService.getLastMatches(
+            op1User.epicId,
+            matchToBePlayed
+        );
 
         const m = new Match();
 
@@ -98,17 +138,92 @@ export default class CupManager {
         const manager = this.getManager();
 
         signale.debug({ match });
-        await manager.update.match({
+
+        let op1Score = 0;
+        let op2Score = 0;
+
+        // Compute score
+        for (const map of maps) {
+            let op1TeamId = -1;
+            let op2TeamId = -1;
+            const [client1, client2] = map.clients;
+            const { teams } = map;
+            const { user_id: client1Id, name: client1Username, team_idx: client1TeamId } = client1;
+            const { user_id: client2Id, name: client2Username, team_idx: client2TeamId } = client2;
+
+            const errMsg = `Failed to report match: the match retrievied is not '${op1User.epicName}' vs '${op2User.epicName}' but '${client1Username}' vs '${client2Username}' (${map.match_id})`;
+
+            // Check that the current map contains the proper players
+            signale.debug({ op: [op1User.epicName, op2User.epicName], client: [client1Username, client2Username] });
+            if ([op1User.epicId, op2User.epicId].indexOf(client1Id) === -1) {
+                signale.warn(errMsg);
+                return false;
+            }
+
+            // Check that the current map contains the proper players
+            if ([op1User.epicId, op2User.epicId].indexOf(client2Id) === -1) {
+                signale.warn(errMsg);
+                return false;
+            }
+
+            if (map.match_mode !== "duel") {
+                signale.warn(`Failed to report match: Invalid match mode ${map.match_mode} (${map.match_id})`);
+                return false;
+            }
+
+
+            if (op1User.epicId === client1Id) {
+                op1TeamId = client1TeamId;
+                op2TeamId = client2TeamId;
+            }
+
+            if (op1User.epicId === client2Id) {
+                op1TeamId = client2TeamId;
+                op2TeamId = client1TeamId;
+            }
+
+            // If it is BO1, just write the BO1 score
+            if (maps.length === 1) {
+                op1Score = teams[op1TeamId].score;
+                op2Score = teams[op2TeamId].score;
+                break;
+            }
+
+            const score1 = teams[op1TeamId].score;
+            const score2 = teams[op2TeamId].score;
+
+            if (score1 > score2) op1Score++;
+            if (score2 > score1) op2Score++;
+        }
+
+        const matchUpdate = {
             id: match.id,
             status: MatchStatus.Completed,
-            opponent1: { id: match.opponent1.id, score: 1, result: 'loss' },
-            opponent2: { id: match.opponent2.id, score: 2, result: 'win' }
-        })
+            opponent1: {
+                id: match.opponent1.id,
+                score: op1Score,
+                result: op1Score > op2Score ? 'win' : 'loss',
+            },
+            opponent2: {
+                id: match.opponent2.id,
+                score: op2Score,
+                result: op1Score < op2Score ? 'win' : 'loss',
+            },
+        };
 
+        await manager.update.match({ ...(matchUpdate as BracketMatch) });
 
+        signale.debug({ msg: "Updating match", matchUpdate });
+
+        // don't await this ;) We need to quicly answer to the interaction! 
+        this.createChannels();
+
+        return true;
     }
 
-    public async createChannel(match: BracketMatch): Promise<RegisterChannelResponse> {
+    public async createChannel(
+        match: BracketMatch
+    ): Promise<RegisterChannelResponse> {
         const guild = await this.client.guilds.fetch(Config.discord_guild_id);
         const everyoneRole = guild.roles.everyone.id;
         const manager = this.getManager();
@@ -184,6 +299,18 @@ export default class CupManager {
             match,
             cupId: this.cup._id,
         });
+
+        const existingChannels = await guild.channels.fetch();
+
+        const matchIdToken = `${match.id}-`
+        const found = existingChannels.find((c) => c.name.substring(0, matchIdToken.length) === matchIdToken);
+
+
+        if (!!found) {
+            signale.debug(`The channel is already created: ${channelName}`);
+            return { channel: null, highSeedPlayer, lowSeedPlayer };
+        }
+
         const channel = await guild.channels.create(channelName, {
             topic,
             permissionOverwrites,
@@ -205,11 +332,14 @@ export default class CupManager {
     }
 
     public async registerPickBan(
-        channel: TextChannel,
+        channel: TextChannel | null,
         match: BracketMatch,
         highSeedPlayer: IUser,
         lowSeedPlayer: IUser
     ): Promise<void> {
+
+        if (!channel) return;
+
         let bo =
             match.child_count === 1
                 ? new BO1([...this.cup.maps]) // Actually do a copy of this because we want to compare in the getMapListMessage function, And we don't want the BO class to modify it

@@ -5,6 +5,7 @@ import signale from 'signale';
 import CleanChannelsCommand from '../commands/admin/clean-channels';
 import CreateAdminCommand from '../commands/admin/create-admin';
 import CreateCupCommand from '../commands/admin/create-cup';
+import ForceScoreCommand from '../commands/admin/force-score';
 import ListAdminsCommand from '../commands/admin/list-admins';
 import RemoveAdminCommand from '../commands/admin/remove-admin';
 import StartCupCommand from '../commands/admin/start';
@@ -108,7 +109,8 @@ export default class DiscordClient {
             new StartCupCommand(this.client),
             new RollCommand(this.client),
             new CleanChannelsCommand(this.client),
-            new ReportCommand(this.client)
+            new ReportCommand(this.client),
+            new ForceScoreCommand(this.client)
         ];
 
         await this.registerCommands();

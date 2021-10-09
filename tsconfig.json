@@ -1,8 +1,13 @@
 {
     "compilerOptions": {
+        "outDir": "dist",
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "esModuleInterop": true,
-        "lib": ["ES2021"]
+        "target": "es2018",
+        "lib": ["es2018", "dom"],
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "strict": false
     }
 }
