@@ -94,6 +94,7 @@ async function main() {
 
     signale.success('Bot started');
 
+
     const app = new App();
 
     await app.start();
