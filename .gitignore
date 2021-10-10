@@ -10,3 +10,5 @@ cup-*.json
 dist/
 
 volumes/
+
+.env*

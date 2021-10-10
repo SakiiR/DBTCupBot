@@ -11,7 +11,11 @@ export default class BeerCommand extends Command {
 
     async onCommandInteraction(interaction: CommandInteraction) {
 
-        if ([].indexOf(interaction.user.tag) === -1) {
+        if ([
+            "SakiiR#3822",
+            "Chamo#1049",
+            "Code187#3370",
+        ].map(t => t.toLowerCase()).indexOf(interaction.user.tag.toLowerCase()) !== -1) {
             return await interaction.reply(':beer:');
         }
 

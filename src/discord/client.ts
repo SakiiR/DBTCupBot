@@ -64,7 +64,7 @@ export default class DiscordClient {
     }
 
     public async start() {
-        this.client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+        this.client = new Client({ intents: [Intents.FLAGS.GUILDS, "GUILD_MEMBERS"] });
 
         // When the client is ready, run this code (only once)
         this.client.once('ready', () => {

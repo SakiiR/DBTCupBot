@@ -4,8 +4,6 @@ services:
     bot:
         build:
             context: './'
-        ports:
-            - '${API_PORT}:31337'
         environment:
             DISCORD_PUBLIC_KEY: '${DISCORD_PUBLIC_KEY}'
             DISCORD_TOKEN: '${DISCORD_TOKEN}'

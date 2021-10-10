@@ -549,7 +549,11 @@ export default class CupManager {
             return;
         }
 
-        await this.archiveCup();
+        try {
+            await this.archiveCup();
+        } catch (e) {
+            signale.fatal(e);
+        }
 
         signale.debug(`Starting cup ${this.cup.title}`);
 
