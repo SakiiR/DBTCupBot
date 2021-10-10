@@ -1,10 +1,11 @@
-require('dotenv').config();
 
+process.env.NODE_ENV !== 'prod' && require('dotenv').config();
 import 'reflect-metadata';
 
 import Config from './config';
-
 import signale from 'signale';
+
+
 import DiscordClient from './discord/client';
 
 import mongoose from 'mongoose';
@@ -12,11 +13,11 @@ import User from './models/user';
 import DatabaseFixtures from './data/data';
 import App from './api/app';
 
+
 async function connectMongo() {
     const url = Config.mongo_url;
 
     try {
-        signale.info('Connecting to mongodb ...');
         await mongoose.connect(url);
         signale.success(`Connected to '${url}'`);
     } catch (e) {
@@ -71,6 +72,7 @@ async function main() {
     signale.info('Configuration: ');
     console.log(Config);
 
+    signale.debug("Connecting to mongo ...");
     await connectMongo();
 
     const client = new DiscordClient(
@@ -79,11 +81,14 @@ async function main() {
         Config.discord_guild_id
     );
 
+    signale.debug("Starting discord bot ...");
     await client.start();
 
+    signale.debug("Running fixtures ...");
     await fixtures(client);
 
     if (Config.fill_database) {
+        signale.debug("Filling database ...");
         await DatabaseFixtures.fill();
     }
 

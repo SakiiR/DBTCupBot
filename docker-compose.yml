@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+    bot:
+        build:
+            context: './'
+        ports:
+            - '${API_PORT}:31337'
+        environment:
+            DISCORD_PUBLIC_KEY: '${DISCORD_PUBLIC_KEY}'
+            DISCORD_TOKEN: '${DISCORD_TOKEN}'
+            DISCORD_GUILD_ID: '${DISCORD_GUILD_ID}'
+            DISCORD_APPLICATION_ID: '${DISCORD_APPLICATION_ID}'
+            DISCORD_CLIENT_ID: '${DISCORD_CLIENT_ID}'
+            FILL_DATABASE: '${FILL_DATABASE}'
+            CUP_STORAGE: '/data/cup-storage'
+            MONGO_URL: 'mongodb://db:27017/dbtcup'
+        volumes:
+            - './volumes/cups:/data/cup-storage'
+    db:
+        image: 'mongo:latest'
+        volumes:
+            - './volumes/db:/data/db'

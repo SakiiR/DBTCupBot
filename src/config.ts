@@ -13,7 +13,10 @@ export default class Config {
     static default_map_pool = ['raya', 'bioplant', 'pavillon x', 'restless', 'skybreak', 'sanctum', 'amberfall'];
     static default_type = "double_elimination";
 
+    static cup_storage = process.env.CUP_STORAGE || "/tmp"
 
     // API
     static api_port = parseInt(process.env.API_PORT || '31337');
+
+    static dev: boolean = process.env.NODE_ENV !== 'prod';
 }

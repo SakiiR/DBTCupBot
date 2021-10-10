@@ -1,6 +1,7 @@
 import fs from "fs/promises";
-import { Get, NotFoundError, HttpError, JsonController, OnNull, Param } from 'routing-controllers';
+import { Get, JsonController, NotFoundError, Param } from 'routing-controllers';
 import Cup from '../../models/cup';
+import getStoragePath from "../../utils/storage-path";
 
 
 @JsonController()
@@ -20,7 +21,7 @@ export default class CupController {
 
         const cup = obj.toJSON();
         try {
-            const cupStorage = `cup-${cup._id}.json`;
+            const cupStorage = getStoragePath(cup);
             const data = await fs.readFile(cupStorage, 'utf8');
             const cupData = JSON.parse(data);
 

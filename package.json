@@ -6,7 +6,7 @@
   "author": "SakiiR <sakiir@protonmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "npx nodemon",
+    "start": "NODE_ENV=dev npx nodemon",
     "build": "npx tsc"
   },
   "devDependencies": {

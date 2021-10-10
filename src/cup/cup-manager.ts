@@ -35,6 +35,8 @@ import BO3 from './pick-ban/bo3';
 import { PickBan, Player } from './pick-ban/pick-ban';
 
 import Match from '../models/match';
+import getStoragePath from '../utils/storage-path';
+import fs from 'fs/promises';
 
 interface RegisterChannelResponse {
     channel?: TextChannel | null;
@@ -57,11 +59,21 @@ export default class CupManager {
     }
 
     private getStoragePath(): string {
-        return `cup-${this.cup._id.toString()}.json`;
+        return getStoragePath(this.cup);
     }
 
     public getManager(): BracketsManager {
         return new BracketsManager(new JsonDatabase(this.getStoragePath()));
+    }
+
+    private async archiveCup(): Promise<void> {
+        const storagePath = this.getStoragePath();
+
+
+        const data = await fs.readFile(storagePath, "utf-8");
+        await fs.writeFile(storagePath.replace('.json', '.json.bak'), data);
+
+        await fs.unlink(storagePath);
     }
 
     public async getUserByParticipantId(id: number): Promise<IUser | null> {
@@ -476,7 +488,6 @@ export default class CupManager {
             if (answer) await interaction.reply(answer);
         });
 
-        signale.debug('end of loop');
     }
 
     public async hasChannel(match: BracketMatch): Promise<boolean> {
@@ -537,7 +548,10 @@ export default class CupManager {
             signale.fatal(`Starting cup failure: cup is null`);
             return;
         }
-        signale.info(`Starting cup ${this.cup.title}`);
+
+        await this.archiveCup();
+
+        signale.debug(`Starting cup ${this.cup.title}`);
 
         const manager = this.getManager();
 
@@ -552,6 +566,8 @@ export default class CupManager {
             seeding,
             settings: { seedOrdering: ['natural'], grandFinal: 'simple' },
         });
+
+        signale.debug(`Cup created, creating channels ...`);
 
         await this.createChannels();
     }

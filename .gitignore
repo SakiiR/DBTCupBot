@@ -8,3 +8,5 @@ yarn-error.log
 cup-*.json
 
 dist/
+
+volumes/

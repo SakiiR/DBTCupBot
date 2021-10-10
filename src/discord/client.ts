@@ -9,6 +9,7 @@ import ForceScoreCommand from '../commands/admin/force-score';
 import ListAdminsCommand from '../commands/admin/list-admins';
 import RemoveAdminCommand from '../commands/admin/remove-admin';
 import StartCupCommand from '../commands/admin/start';
+import BeerCommand from '../commands/beer';
 import EnrollCommand from '../commands/enroll';
 import LeaveCommand from '../commands/leave';
 import LinkEpicCommand from '../commands/link-epic';
@@ -110,7 +111,8 @@ export default class DiscordClient {
             new RollCommand(this.client),
             new CleanChannelsCommand(this.client),
             new ReportCommand(this.client),
-            new ForceScoreCommand(this.client)
+            new ForceScoreCommand(this.client),
+            new BeerCommand(this.client),
         ];
 
         await this.registerCommands();

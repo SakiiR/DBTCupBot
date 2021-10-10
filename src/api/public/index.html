@@ -92,7 +92,10 @@
             }
 
             async function createBracket(id) {
-                if (!id) return;
+                if (!id) {
+                    console.error('No id provided');
+                    return;
+                }
 
                 const url = `/api/cup/${id}`;
                 const response = await fetch(url);
@@ -100,7 +103,11 @@
 
                 const { cup, cupData: data } = json;
 
-                if (!data) return null;
+                if (!data) {
+                    console.error('No cup data provided ..');
+                    console.log({ json });
+                    return;
+                }
 
                 // This is optional. You must do it before render().
                 // window.bracketsViewer.setParticipantImages(
