@@ -3,7 +3,7 @@ version: '3.8'
 services:
     bot:
         build:
-            context: './'
+            context: './bot'
         environment:
             DISCORD_PUBLIC_KEY: '${DISCORD_PUBLIC_KEY}'
             DISCORD_TOKEN: '${DISCORD_TOKEN}'
@@ -15,6 +15,13 @@ services:
             MONGO_URL: 'mongodb://db:27017/dbtcup'
         volumes:
             - './volumes/cups:/data/cup-storage'
+    front:
+        build:
+            context: './front'
+            args:
+                API_HOST: 'bot'
+        ports:
+            - "8080:80"
     db:
         image: 'mongo:latest'
         volumes:
