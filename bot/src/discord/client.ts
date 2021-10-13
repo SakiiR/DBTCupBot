@@ -75,6 +75,8 @@ export default class DiscordClient {
             if (interaction.isCommand()) {
                 const { commandName } = interaction;
 
+                signale.debug(`${interaction.user.tag}: /${commandName}`);
+
                 for (const command of this.commands) {
                     if (command._name === commandName) {
                         await command.onCommandInteraction(interaction);
