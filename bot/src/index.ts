@@ -2,7 +2,7 @@
 process.env.NODE_ENV !== 'prod' && require('dotenv').config();
 import 'reflect-metadata';
 
-import Config from './config';
+import Config, { getPrintableConfig } from './config';
 import signale from 'signale';
 
 
@@ -70,7 +70,7 @@ async function fixtures(client: DiscordClient) {
 
 async function main() {
     signale.info('Configuration: ');
-    console.log(Config);
+    console.log(getPrintableConfig());
 
     signale.debug("Connecting to mongo ...");
     await connectMongo();

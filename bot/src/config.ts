@@ -26,4 +26,18 @@ export default class Config {
     static timeBeforeDeletingChannel = 5000;
 
     static announcementChannel = process.env.ANNOUNCEMENT_CHANNEL || "general";
+
+    static secretFields = [
+        "discord_token"
+    ]
+}
+
+export function getPrintableConfig(): any {
+    const cpy = { ...Config };
+
+    for (const s of Config.secretFields) {
+        cpy[s] = "******";
+    }
+
+    return cpy;
 }

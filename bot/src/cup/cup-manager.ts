@@ -253,8 +253,11 @@ export default class CupManager {
             epicName: op2EpicName,
         } = op2User;
 
+
+        signale.debug("createChannel: retrieving guild members ...");
         const op1DiscordMember = await guild.members.fetch(op1DiscordId);
         const op2DiscordMember = await guild.members.fetch(op2DiscordId);
+        signale.debug("createChannel: retrieved guild members");
 
         // retrieve the list of all participants as DatabaseUser ( containing ranks )
         const users = await User.find({
@@ -309,7 +312,10 @@ export default class CupManager {
             cupId: this.cup._id,
         });
 
+
+        signale.debug("createChannel: retrieving guild channels ...");
         const existingChannels = await guild.channels.fetch();
+        signale.debug("createChannel: retrieved guild channels");
 
         const matchIdToken = `${match.id}-`
         const found = existingChannels.find((c) => c.name.substring(0, matchIdToken.length) === matchIdToken);
@@ -320,14 +326,20 @@ export default class CupManager {
             return { channel: null, highSeedPlayer, lowSeedPlayer };
         }
 
+
+        signale.debug("createChannel: Creating new guild channel ...");
         const channel = await guild.channels.create(channelName, {
             topic,
             permissionOverwrites,
         });
+        signale.debug("createChannel: Created new guild channel");
 
         // save back the modified match
+        signale.debug("createChannel: Saving match...");
         await manager.storage.update('match', match.id, { ...match });
+        signale.debug("createChannel: Saved match");
 
+        signale.debug("createChannel: Sending channel message...");
         await channel.send(
             await getMatchChannelWelcomeMessage(
                 this.cup,
@@ -336,6 +348,7 @@ export default class CupManager {
                 match
             )
         );
+        signale.debug("createChannel: Sent channel message");
 
         return { channel, highSeedPlayer, lowSeedPlayer };
     }
@@ -550,12 +563,14 @@ export default class CupManager {
             if (match.status === MatchStatus.Ready) {
                 signale.debug(`Match ${match.id} ready !`);
                 // Create channels and message/command handler etc etc
-                if (!(await this.hasChannel(match))) {
-                    signale.debug(`Match ${match.id} channel not created yet!`);
+                signale.debug(`Match ${match.id} has channel ...`);
+                const channelExists = await this.hasChannel(match);
+                signale.debug(`Match ${match.id} has channel: ${channelExists}`);
 
+                if (!channelExists) {
+                    signale.debug(`Match ${match.id} channel not created yet!`);
                     const { channel, highSeedPlayer, lowSeedPlayer } =
                         await this.createChannel(match);
-
                     signale.debug(`Match ${match.id} channel created!`);
 
                     signale.debug(`Match ${match.id}: Registering pick/ban`);
