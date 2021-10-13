@@ -145,14 +145,9 @@ export default class CupManager {
 
         const manager = this.getManager();
 
-        signale.debug({ match });
-
         let op1Score = 0;
         let op2Score = 0;
 
-        function isThatAWin(leftScore: number, rightScore: number, bo: number): boolean {
-            return false;
-        }
 
         // Compute score
         for (const map of maps) {
