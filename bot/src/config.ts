@@ -19,4 +19,11 @@ export default class Config {
     static api_port = parseInt(process.env.API_PORT || '31337');
 
     static dev: boolean = process.env.NODE_ENV !== 'prod';
+
+    static pickEmoji = ":white_check_mark:";
+    static banEmoji = ":no_entry_sign:";
+
+    static timeBeforeDeletingChannel = 5000;
+
+    static announcementChannel = process.env.ANNOUNCEMENT_CHANNEL || "general";
 }

@@ -112,9 +112,7 @@ export default class CupManager {
 
         signale.debug({ msg: "Updating match", matchUpdate });
 
-        // don't await this ;) We need to quicly answer to the interaction! 
-        this.createChannels();
-
+        await this.createChannels();
 
         return true;
     }
@@ -229,8 +227,7 @@ export default class CupManager {
 
         signale.debug({ msg: "Updating match", matchUpdate });
 
-        // don't await this ;) We need to quicly answer to the interaction! 
-        this.createChannels();
+        await this.createChannels();
 
         return true;
     }
@@ -246,14 +243,12 @@ export default class CupManager {
 
         const op1User = await this.getUserByParticipantId(match.opponent1.id);
         const {
-            discordTag: op1DiscordTag,
             discordId: op1DiscordId,
             epicName: op1EpicName,
         } = op1User;
 
         const op2User = await this.getUserByParticipantId(match.opponent2.id);
         const {
-            discordTag: op2DiscordTag,
             discordId: op2DiscordId,
             epicName: op2EpicName,
         } = op2User;
@@ -289,7 +284,7 @@ export default class CupManager {
         }
 
         signale.debug(
-            `Creating channel for ${highSeedPlayer.epicName} vs ${lowSeedPlayer.epicName}`
+            `Creating channel for match ${match.id} (${highSeedPlayer.epicName} vs ${lowSeedPlayer.epicName})`
         );
 
         // Eventually add new groups ( by name in the config, e.q: Twitchers, Admins etc)
@@ -395,9 +390,10 @@ export default class CupManager {
                     ? highSeedPlayer
                     : lowSeedPlayer;
             const pickBan = step.pickBan === PickBan.Pick ? 'pick' : 'ban';
+            const pickBanEmoji = Config[`${pickBan}Emoji`];
             const msg = `Please ${getDiscordTag(
                 player.discordId
-            )}, choose a map to **${pickBan}**`;
+            )}, choose a map to **${pickBan}** ${pickBanEmoji}`;
 
             const row = new MessageActionRow().addComponents(
                 new MessageSelectMenu()
@@ -436,7 +432,7 @@ export default class CupManager {
                 // Its fine if its SakiiR
                 if (Config.admin_tags.indexOf(interaction.user.tag) === -1) {
                     await interaction.reply({
-                        content: `Wait for your turn!`,
+                        content: `Wait for your turn :warning:`,
                         ephemeral: true,
                     });
                     return;
@@ -498,31 +494,78 @@ export default class CupManager {
         const channels = await guild.channels.fetch();
 
         const found = channels.find((c) => {
-            const [idStr] = c.name.split(' ');
+            const [idStr] = c.name.split('-');
             return idStr === match.id.toString();
         });
 
         return !!found;
     }
 
+    public async checkForWinner(): Promise<void> {
+        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
+
+        const manager = this.getManager();
+
+        const matches = await manager.storage.select('match');
+
+        const finalMatch = matches[matches.length - 1];
+
+        // We have a winner ! announce it !
+        if (finalMatch.status === MatchStatus.Completed) {
+            let winnerId = finalMatch.opponent1.id;
+
+            if (finalMatch.opponent2.score > finalMatch.opponent1.score)
+                winnerId = finalMatch.opponent2.id;
+
+            const winner = await this.getUserByParticipantId(winnerId);
+
+            signale.success(`Cup winner: ${winner.epicName}`);
+
+
+            const channels = await guild.channels.fetch();
+            const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+
+
+
+            if (!announcementChannel) {
+                signale.warn(`Cannot find announcement channel by name ${Config.announcementChannel}`);
+                return;
+            }
+
+            await announcementChannel.send(`And the winner is \`${winner.epicName}\` !`);
+            await announcementChannel.send(`Congratulation ${getDiscordTag(winner.discordId)}`);
+        }
+    }
+
     public async createChannels() {
+        signale.debug("createChannels()");
+
+        await this.checkForWinner();
+
         const manager = this.getManager();
 
         const matches = await manager.storage.select('match');
 
         for (const match of matches) {
             if (match.status === MatchStatus.Ready) {
+                signale.debug(`Match ${match.id} ready !`);
                 // Create channels and message/command handler etc etc
                 if (!(await this.hasChannel(match))) {
+                    signale.debug(`Match ${match.id} channel not created yet!`);
+
                     const { channel, highSeedPlayer, lowSeedPlayer } =
                         await this.createChannel(match);
 
+                    signale.debug(`Match ${match.id} channel created!`);
+
+                    signale.debug(`Match ${match.id}: Registering pick/ban`);
                     await this.registerPickBan(
                         channel,
                         match,
                         highSeedPlayer,
                         lowSeedPlayer
                     );
+                    signale.debug(`Match ${match.id}: Registered pick/ban`);
                 }
             }
         }

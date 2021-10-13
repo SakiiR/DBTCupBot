@@ -1,9 +1,11 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { BaseGuildTextChannel, CommandInteraction, SelectMenuInteraction } from "discord.js";
+import Config from '../../config';
 import CupManager, { MatchChannelTopic } from '../../cup/cup-manager';
 import Cup from "../../models/cup";
 import enforceAdmin from '../../utils/enforce-admin-interaction';
 import Serializer from '../../utils/serialize';
+import sleep from '../../utils/sleep';
 import Command from '../command';
 
 
@@ -20,6 +22,8 @@ export default class ForceScoreCommand extends Command {
         if (!(await enforceAdmin(interaction))) {
             return await interaction.reply('You are not an admin');
         }
+
+        await interaction.deferReply();
 
         const scoreString = interaction.options.getString('score');
 
@@ -38,20 +42,20 @@ export default class ForceScoreCommand extends Command {
 
         const cup = await Cup.findOne({ _id: matchChannelTopic.cupId });
         if (!cup)
-            return await interaction.reply(`The channel topic might be invalid, please contact admins`);
+            return await interaction.editReply(`The channel topic might be invalid, please contact admins`);
 
 
         const cupManager = new CupManager(this.client, cup);
 
         const res = await cupManager.forceMatchScore(matchChannelTopic.match, leftScore, rightScore);
         if (!res)
-            return await interaction.reply(`Failed to force score ...`);
+            return await interaction.editReply('Cannot force match score, contact admin');
 
+        await interaction.editReply('Score reported');
 
-        if (channel.deletable) channel.delete();
+        await sleep(Config.timeBeforeDeletingChannel);
 
-        return await interaction.reply(`Score reported !`);
-
+        if (channel.deletable) await channel.delete();
     }
 
     async register() {

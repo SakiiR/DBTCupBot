@@ -5,6 +5,8 @@ import Command from './command';
 
 import CupManager, { MatchChannelTopic } from '../cup/cup-manager';
 import Cup from '../models/cup';
+import sleep from '../utils/sleep';
+import Config from '../config';
 
 
 /**
@@ -27,13 +29,18 @@ export default class ReportCommand extends Command {
 
         const cupManager = new CupManager(this.client, cup);
 
+        await interaction.deferReply();
+
         const res = await cupManager.reportMatchScore(matchChannelTopic.match);
         if (!res)
-            return await interaction.reply('Cannot report match score, contact admin');
+            await interaction.editReply('Cannot report match score, contact admin');
 
-        if (channel.deletable) channel.delete();
 
-        return await interaction.reply('Match score reported ! thanks');
+        await interaction.editReply('Match score reported ! thanks');
+
+        await sleep(Config.timeBeforeDeletingChannel);
+
+        if (channel.deletable) await channel.delete();
     }
 
     async register() {
