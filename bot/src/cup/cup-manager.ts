@@ -37,6 +37,7 @@ import { PickBan, Player } from './pick-ban/pick-ban';
 import Match from '../models/match';
 import getStoragePath from '../utils/storage-path';
 import fs from 'fs/promises';
+import { isThatAWin } from '../utils/is-that-a-win';
 
 interface RegisterChannelResponse {
     channel?: TextChannel | null;
@@ -92,10 +93,6 @@ export default class CupManager {
     public async forceMatchScore(match: BracketMatch, leftScore: number, rightScore: number): Promise<boolean> {
         const manager = this.getManager();
 
-        const op1User = await this.getUserByParticipantId(match.opponent1.id);
-        const op2User = await this.getUserByParticipantId(match.opponent2.id);
-
-
         const matchUpdate = {
             id: match.id,
             status: MatchStatus.Completed,
@@ -107,7 +104,7 @@ export default class CupManager {
             opponent2: {
                 id: match.opponent2.id,
                 score: rightScore,
-                result: rightScore < rightScore ? 'win' : 'loss',
+                result: leftScore < rightScore ? 'win' : 'loss',
             },
         };
 
@@ -149,10 +146,9 @@ export default class CupManager {
 
         const manager = this.getManager();
 
-        signale.debug({ match });
-
         let op1Score = 0;
         let op2Score = 0;
+
 
         // Compute score
         for (const map of maps) {
@@ -164,6 +160,7 @@ export default class CupManager {
             const { user_id: client2Id, name: client2Username, team_idx: client2TeamId } = client2;
 
             const errMsg = `Failed to report match: the match retrievied is not '${op1User.epicName}' vs '${op2User.epicName}' but '${client1Username}' vs '${client2Username}' (${map.match_id})`;
+
 
             // Check that the current map contains the proper players
             signale.debug({ op: [op1User.epicName, op2User.epicName], client: [client1Username, client2Username] });
@@ -206,6 +203,11 @@ export default class CupManager {
 
             if (score1 > score2) op1Score++;
             if (score2 > score1) op2Score++;
+
+            if (isThatAWin(op1Score, op2Score, matchToBePlayed)) {
+                signale.debug(`It's a win ${op1Score}-${op2Score} Best of ${matchToBePlayed}`)
+                break;
+            }
         }
 
         const matchUpdate = {
