@@ -37,6 +37,7 @@ import { PickBan, Player } from './pick-ban/pick-ban';
 import Match from '../models/match';
 import getStoragePath from '../utils/storage-path';
 import fs from 'fs/promises';
+import { isThatAWin } from '../utils/is-that-a-win';
 
 interface RegisterChannelResponse {
     channel?: TextChannel | null;
