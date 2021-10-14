@@ -4,9 +4,27 @@
       <q-toolbar>
         <!-- <q-btn flat dense round icon="menu" aria-label="Menu" /> -->
 
-        <q-toolbar-title> Quasar App </q-toolbar-title>
+        <q-toolbar-title> DBT Cup </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <router-link to="/cups">
+          <q-btn flat round dense icon="emoji_events" class="q-mr-xs">
+            <q-tooltip> Cups </q-tooltip>
+          </q-btn>
+        </router-link>
+
+        <router-link to="/login" v-if="!authenticated">
+          <q-btn flat round dense icon="vpn_key" class="q-mr-xs">
+            <q-tooltip> Authenticate </q-tooltip>
+          </q-btn>
+        </router-link>
+
+        <router-link to="/me" v-if="authenticated">
+          <q-btn flat round dense icon="person" class="q-mr-xs">
+            <q-tooltip> My profile </q-tooltip>
+          </q-btn>
+        </router-link>
+
+        <span v-if="authenticated">{{ user.epicName }}</span>
       </q-toolbar>
     </q-header>
 
@@ -17,15 +35,22 @@
 </template>
 
 <script>
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
+import store from "src/store";
+import { mapState } from "vuex";
 
 export default defineComponent({
   name: "MainLayout",
 
-  components: {},
-
   setup() {
-    return {};
+    const $store = store;
+
+    $store.dispatch("general/fetchMe");
   },
+
+  computed: mapState({
+    user: (state) => state.general.user,
+    authenticated: (state) => !!state.general.user,
+  }),
 });
 </script>

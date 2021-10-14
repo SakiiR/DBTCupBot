@@ -24,10 +24,18 @@ export default {
   },
   methods: {
     async loadMatch() {
+      // 3ce83918-4e0c-49c1-94ce-e253d37471e8
       const response = await fetch(
-        `https://api.diabotical.com/api/v0/diabotical/match/3ce83918-4e0c-49c1-94ce-e253d37471e8`
+        `https://api.diabotical.com/api/v0/diabotical/match/${this.id}`
       );
       const { match } = await response.json();
+
+      if (!match) {
+        return this.$q.notify({
+          type: "negative",
+          message: `Invalid match id provided: ${this.id}`,
+        });
+      }
 
       this.match = formatMatch(match);
     },

@@ -2,6 +2,7 @@ export default class Config {
     // Discord
     static discord_token = process.env.DISCORD_TOKEN || 'default-discord-token';
     static discord_client_id = process.env.DISCORD_CLIENT_ID || 'default-discord-client-id';
+    static discord_client_secret = process.env.DISCORD_CLIENT_SECRET || 'default-discord-client-secret';
     static discord_guild_id = process.env.DISCORD_GUILD_ID || 'default-discord-guild-id';
     static admin_tags = (process.env.ADMIN_TAGS || 'SakiiR#3822').split(',');
 
@@ -26,6 +27,7 @@ export default class Config {
     static timeBeforeDeletingChannel = 5000;
 
     static announcementChannel = process.env.ANNOUNCEMENT_CHANNEL || "general";
+    static api_secret = process.env.API_SECRET || "default-secret";
 
     static secretFields = [
         "discord_token"
