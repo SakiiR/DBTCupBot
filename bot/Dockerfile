@@ -1,7 +1,7 @@
 ARG APP_DIR="/usr/src/app"
 
 # Build stage
-FROM node:latest AS build
+FROM node:16.6.0 AS build
 ARG APP_DIR
 
 RUN mkdir -p "${APP_DIR}" && cd "${APP_DIR}"
@@ -21,7 +21,7 @@ COPY src "${APP_DIR}/src"
 RUN yarn build
 
 # Run stage
-FROM node:latest AS run
+FROM node:16.6.0 AS run
 ARG APP_DIR
 
 RUN mkdir -p "${APP_DIR}" && cd "${APP_DIR}"

@@ -20,8 +20,6 @@ services:
             context: './front'
             args:
                 API_HOST: 'bot'
-        ports:
-            - "8080:80"
     db:
         image: 'mongo:latest'
         volumes:
