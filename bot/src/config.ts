@@ -30,7 +30,8 @@ export default class Config {
     static api_secret = process.env.API_SECRET || "default-secret";
 
     static secretFields = [
-        "discord_token"
+	"discord_token",
+	"discord_client_secret"
     ]
 }
 
