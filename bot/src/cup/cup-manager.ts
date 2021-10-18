@@ -39,6 +39,8 @@ import getStoragePath from '../utils/storage-path';
 import fs from 'fs/promises';
 import { isThatAWin } from '../utils/is-that-a-win';
 
+import MutexSingleton from "../utils/mutex-singleton";
+
 interface RegisterChannelResponse {
     channel?: TextChannel | null;
     highSeedPlayer: IUser;
@@ -551,6 +553,13 @@ export default class CupManager {
     }
 
     public async createChannels() {
+
+        const mutex = MutexSingleton.getInstance().getMutex();
+
+        signale.debug("Mutex: waiting for mutex");
+        const release = await mutex.acquire();
+        signale.debug("Mutex: done");
+
         signale.debug("createChannels()");
 
         await this.checkForWinner();
@@ -584,6 +593,11 @@ export default class CupManager {
                 }
             }
         }
+
+
+        signale.debug("Mutex: releasing mutex");
+        await release();
+        signale.debug("Mutex: done");
     }
 
     private async getSeeding(): Promise<Seeding> {
