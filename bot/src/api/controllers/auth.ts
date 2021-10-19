@@ -1,5 +1,6 @@
 import fetch from "node-fetch";
 import { CurrentUser, Get, JsonController, OnNull, OnUndefined, QueryParam, Redirect, Req, Res } from 'routing-controllers';
+import signale from "signale";
 import Config from "../../config";
 import User, { IUser } from "../../models/user";
 
@@ -16,7 +17,7 @@ export default class AuthController {
                 client_secret: Config.discord_client_secret,
                 code,
                 grant_type: 'authorization_code',
-		redirect_uri: Config.redirect_uri,
+                redirect_uri: Config.redirect_uri,
                 scope: 'identify',
             }),
             headers: {
@@ -25,6 +26,11 @@ export default class AuthController {
         });
 
         const oauthData = await oauthResponse.json();
+
+        if (!oauthData.access_token) {
+            return "?error=Invalid configuration";
+        }
+
 
         const response = await fetch('https://discord.com/api/users/@me', {
             headers: {

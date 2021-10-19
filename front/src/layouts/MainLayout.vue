@@ -24,7 +24,7 @@
           </q-btn>
         </router-link>
 
-        <span v-if="authenticated">{{ user.epicName }}</span>
+        <span v-if="authenticated">{{ user.epicName || user.discordTag }}</span>
       </q-toolbar>
     </q-header>
 
@@ -43,9 +43,7 @@ export default defineComponent({
   name: "MainLayout",
 
   setup() {
-    const $store = store;
-
-    $store.dispatch("general/fetchMe");
+    store.dispatch("general/fetchMe");
   },
 
   computed: mapState({

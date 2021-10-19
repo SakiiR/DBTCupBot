@@ -1,13 +1,32 @@
 <template>
   <q-page>
-    <span>Cup is {{ $route.params.id }}</span>
+    <div v-if="!!cup">
+      <h3>{{ cup.title }}</h3>
+
+      <div class="row">
+        <div class="col-9">
+          <cup-players :cup="cup" />
+        </div>
+        <div class="col-1"></div>
+        <div class="col-2">
+          <cup-maps :cup="cup" />
+        </div>
+      </div>
+    </div>
   </q-page>
 </template>
 
 <script>
 import APIService from "src/services/api";
+import CupPlayers from "src/components/cup/Players.vue";
+import CupMaps from "src/components/cup/Maps.vue";
+
 export default {
   name: "Cup",
+  components: {
+    CupPlayers,
+    CupMaps,
+  },
   data() {
     return {
       cup: null,

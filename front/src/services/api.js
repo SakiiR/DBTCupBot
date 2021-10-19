@@ -20,6 +20,6 @@ export default class APIService {
     const response = await fetch(`/api/cup/${id}?${ts}`);
     const json = await response.json();
 
-    return json;
+    return json.cup;
   }
 }
