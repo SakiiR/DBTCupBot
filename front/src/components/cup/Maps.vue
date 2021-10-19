@@ -21,10 +21,6 @@
           <q-item-label>{{ map }}</q-item-label>
           <q-item-label caption lines="1">{{ map }}</q-item-label>
         </q-item-section>
-
-        <q-item-section side>
-          <q-btn icon="menu" flat round dense></q-btn>
-        </q-item-section>
       </q-item>
     </q-list>
   </div>
