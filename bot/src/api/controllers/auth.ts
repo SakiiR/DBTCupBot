@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
 import { CurrentUser, Get, JsonController, OnNull, OnUndefined, QueryParam, Redirect, Req, Res } from 'routing-controllers';
-import signale from "signale";
 import Config from "../../config";
 import User, { IUser } from "../../models/user";
 
@@ -10,8 +9,6 @@ export default class AuthController {
     @Get('/auth/callback')
     @Redirect("/")
     async callback(@QueryParam('code') code: string, @Req() req: Express.Request) {
-        signale.debug(`Received code: ${code}`);
-
         const oauthResponse = await fetch('https://discord.com/api/oauth2/token', {
             method: 'POST',
             body: new URLSearchParams({
@@ -19,7 +16,7 @@ export default class AuthController {
                 client_secret: Config.discord_client_secret,
                 code,
                 grant_type: 'authorization_code',
-                redirect_uri: `http://localhost:4444/api/auth/callback`,
+		redirect_uri: Config.redirect_uri,
                 scope: 'identify',
             }),
             headers: {

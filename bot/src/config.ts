@@ -5,6 +5,7 @@ export default class Config {
     static discord_client_secret = process.env.DISCORD_CLIENT_SECRET || 'default-discord-client-secret';
     static discord_guild_id = process.env.DISCORD_GUILD_ID || 'default-discord-guild-id';
     static admin_tags = (process.env.ADMIN_TAGS || 'SakiiR#3822').split(',');
+    static redirect_uri = process.env.REDIRECT_URI || 'http://127.0.0.1:444/api/auth/callback';
 
     // Mongo
     static mongo_url = (process.env.MONGO_URL || 'mongodb://localhost:27017/dbtcup');
@@ -31,7 +32,8 @@ export default class Config {
 
     static secretFields = [
 	"discord_token",
-	"discord_client_secret"
+	"discord_client_secret",
+	"api_secret"
     ]
 }
 

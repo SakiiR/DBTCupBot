@@ -11,7 +11,9 @@ services:
             DISCORD_APPLICATION_ID: '${DISCORD_APPLICATION_ID}'
             DISCORD_CLIENT_ID: '${DISCORD_CLIENT_ID}'
             DISCORD_CLIENT_SECRET: '${DISCORD_CLIENT_SECRET}'
+            REDIRECT_URI: '${REDIRECT_URI}'
             FILL_DATABASE: '${FILL_DATABASE}'
+            API_SECRET: '${API_SECRET}'
             CUP_STORAGE: '/data/cup-storage'
             MONGO_URL: 'mongodb://db:27017/dbtcup'
         volumes:
