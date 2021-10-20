@@ -1,8 +1,8 @@
 <template>
-  <div v-if="!!cup">
+  <div v-if="!!cup.cup">
     <q-table
-      :title="`Players (${cup.challengers.length})`"
-      :rows="cup.challengers"
+      :title="`Players (${cup.cup.challengers.length})`"
+      :rows="cup.cup.challengers"
       :columns="columns"
       :pagination="initialPagination"
       row-key="name"

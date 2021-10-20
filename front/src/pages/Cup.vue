@@ -4,6 +4,10 @@
       <h3>{{ cup.title }}</h3>
 
       <div class="row">
+        <cup-bracket :cup="cup" />
+      </div>
+
+      <div class="row">
         <div class="col-9">
           <cup-players :cup="cup" />
         </div>
@@ -20,12 +24,14 @@
 import APIService from "src/services/api";
 import CupPlayers from "src/components/cup/Players.vue";
 import CupMaps from "src/components/cup/Maps.vue";
+import CupBracket from "src/components/cup/Bracket.vue";
 
 export default {
   name: "Cup",
   components: {
     CupPlayers,
     CupMaps,
+    CupBracket,
   },
   data() {
     return {
