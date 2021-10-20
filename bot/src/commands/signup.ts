@@ -19,6 +19,11 @@ export default class SignupCommand extends Command {
     async onSelectMenuInteraction(interaction: SelectMenuInteraction) {
         const currentUser = await getCurrentUser(interaction);
 
+        if (!currentUser)
+            return await interaction.reply(
+                `You need to /enroll first`
+            );
+
         if (!currentUser.epicId || !currentUser.epicName)
             return await interaction.reply(
                 `You need to link your Epic account first! use /link-epic first`
