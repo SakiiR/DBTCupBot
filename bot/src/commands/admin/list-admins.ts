@@ -13,7 +13,7 @@ export default class ListAdminsCommand extends Command {
     async onCommandInteraction(interaction: CommandInteraction) {
         const adminUsers = await User.find({ admin: true });
         const users = adminUsers.map(user => user.discordTag).join(', ');
-        return await interaction.reply(`\`${users}\``);
+        return await interaction.reply({ content: `\`${users}\``, ephemeral: true });
     }
 
     async register() {

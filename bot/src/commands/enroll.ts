@@ -16,12 +16,12 @@ export default class EnrollCommand extends Command {
 
         const user = await User.findOne({ discordTag });
         if (!!user)
-            return await interaction.reply(`You are already enroll'd into the system`);
+            return await interaction.reply({ content: `You are already enroll'd into the system`, ephemeral: true });
 
         const newUser = new User({ discordTag, discordId, rating: 0, admin: false });
         await newUser.save();
 
-        return await interaction.reply(`You have been enroll'd into the system`);
+        return await interaction.reply({ content: `You have been enroll'd into the system`, ephemeral: true });
     }
 
     async register() {

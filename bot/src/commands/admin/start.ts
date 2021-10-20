@@ -19,18 +19,18 @@ export default class StartCupCommand extends Command {
 
 
         if (!cup) {
-            return await interaction.reply('Error: cup is null');
+            return await interaction.reply({ content: 'Error: cup is null', ephemeral: true });
         }
 
         if (cup.challengers.length < 2) {
-            return await interaction.reply('Cup needs at least 2 challengers');
+            return await interaction.reply({ content: 'Cup needs at least 2 challengers', ephemeral: true });
         }
 
         const challengers: IUser[] = cup.challengers as IUser[];
 
         for (const challenger of challengers) {
             if (!challenger.epicId || !challenger.epicName) {
-                return await interaction.reply(`The user ${challenger.discordTag} didn't link its epic account`);
+                return await interaction.reply({ content: `The user ${challenger.discordTag} didn't link its epic account`, ephemeral: true });
             }
         }
 
@@ -50,12 +50,12 @@ export default class StartCupCommand extends Command {
 
 
 
-        let msg = (
+        let content = (
             `Starting cup **${cup.title}**\n` +
             `Participants (**${cup.challengers.length}**): ${participants}`
         )
 
-        await interaction.reply(msg);
+        await interaction.reply({ content });
 
         const cm = new CupManager(this.client, cup);
 
@@ -67,7 +67,7 @@ export default class StartCupCommand extends Command {
     async onCommandInteraction(interaction: CommandInteraction) {
 
         if (!(await enforceAdmin(interaction))) {
-            return await interaction.reply('You are not an admin');
+            return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
         const cups = await Cup.find({
@@ -76,7 +76,7 @@ export default class StartCupCommand extends Command {
         });
 
         if (cups.length === 0) {
-            return await interaction.reply('There are no cups available!');
+            return await interaction.reply({ content: 'There are no cups available!', ephemeral: true });
         }
 
         const row = new MessageActionRow().addComponents(
@@ -95,6 +95,7 @@ export default class StartCupCommand extends Command {
         await interaction.reply({
             content: 'Please choose a cup to start',
             components: [row],
+            ephemeral: true,
         });
     }
 

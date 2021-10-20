@@ -14,7 +14,7 @@ export default class CreateAdminCommand extends Command {
 
     async onCommandInteraction(interaction: CommandInteraction) {
         if (!(await enforceAdmin(interaction))) {
-            return await interaction.reply('You are not an admin');
+            return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
         const discordTag = interaction.options.getString('discord-tag');
@@ -26,13 +26,13 @@ export default class CreateAdminCommand extends Command {
             const newAdmin = new User({ discordTag, rating: 0, admin: true });
 
             await newAdmin.save();
-            await interaction.reply('The user was not found so I created it');
+            await interaction.reply({ content: 'The user was not found so I created it', ephemeral: true });
             return;
         }
 
         await User.updateOne({ discordTag }, { admin: true });
 
-        await interaction.reply(`\`${discordTag}\` is now admin`);
+        await interaction.reply({ content: `\`${discordTag}\` is now admin`, ephemeral: true });
     }
 
     async register() {

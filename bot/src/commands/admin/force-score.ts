@@ -20,7 +20,7 @@ export default class ForceScoreCommand extends Command {
 
     async onCommandInteraction(interaction: CommandInteraction) {
         if (!(await enforceAdmin(interaction))) {
-            return await interaction.reply('You are not an admin');
+            return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
         await interaction.deferReply();
@@ -31,7 +31,7 @@ export default class ForceScoreCommand extends Command {
 
         const malformedScoreError = `Invalid score provided: ${scoreString}`;
 
-        if (scoreTokens.length !== 2) return await interaction.reply(malformedScoreError);
+        if (scoreTokens.length !== 2) return await interaction.reply({ content: malformedScoreError, ephemeral: true });
 
         let [leftScore, rightScore] = scoreTokens.map(c => parseInt(c));
 

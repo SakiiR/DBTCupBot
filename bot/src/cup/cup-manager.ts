@@ -495,7 +495,7 @@ export default class CupManager {
                 message = await buildMapPrompt();
             }
 
-            if (answer) await interaction.reply(answer);
+            if (answer) await interaction.reply({ content: answer });
         });
 
     }

@@ -21,6 +21,7 @@ export default class ListPlayersCommand extends Command {
         const [value] = values;
 
         const cup = await Cup.findOne({ _id: value }).populate('challengers');
+        if (!cup) return await interaction.reply({ content: "Could not find cup", ephemeral: true });
 
         const str = cup.challengers.map(
             (c) => {
@@ -31,7 +32,7 @@ export default class ListPlayersCommand extends Command {
         ).join('\n');
 
 
-        return await interaction.reply(str);
+        return await interaction.reply({ content: str, ephemeral: true });
     }
 
     async onCommandInteraction(interaction: CommandInteraction) {
@@ -41,7 +42,7 @@ export default class ListPlayersCommand extends Command {
         });
 
         if (cups.length === 0) {
-            return await interaction.reply('There are no cups available!');
+            return await interaction.reply({ content: 'There are no cups available!', ephemeral: true });
         }
 
         const row = new MessageActionRow().addComponents(
@@ -57,7 +58,7 @@ export default class ListPlayersCommand extends Command {
                 ])
         );
 
-        await interaction.reply({ content: 'Please choose a cup', components: [row] });
+        await interaction.reply({ content: 'Please choose a cup', ephemeral: true, components: [row] });
     }
 
     async register() {

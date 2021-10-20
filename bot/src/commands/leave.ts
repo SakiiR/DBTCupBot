@@ -24,13 +24,13 @@ export default class LeaveCommand extends Command {
 
         const cup = await Cup.findOne({ _id: value }).populate('challengers');
 
-        if (cup.started && !cup.over) return await interaction.reply('Cup has already started!');
+        if (cup.started && !cup.over) return await interaction.reply({ content: 'Cup has already started!', ephemeral: true });
 
         const found = [...cup.challengers].find(
             (u: IUser) => u._id.toString() === currentUser._id.toString()
         );
         if (!found)
-            return await interaction.reply('You are not playing this cup');
+            return await interaction.reply({ content: 'You are not playing this cup', ephemeral: true });
 
         await Cup.updateOne(
             { _id: cup._id },
@@ -38,7 +38,7 @@ export default class LeaveCommand extends Command {
         );
 
         return await interaction.reply(
-            `Successfully left  **${cup.title}**`
+            { content: `Successfully left  **${cup.title}**`, ephemeral: true }
         );
     }
 
@@ -49,7 +49,7 @@ export default class LeaveCommand extends Command {
         });
 
         if (cups.length === 0) {
-            return await interaction.reply('There are no cups available!');
+            return await interaction.reply({ content: 'There are no cups available!', ephemeral: true });
         }
 
         const row = new MessageActionRow().addComponents(

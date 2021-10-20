@@ -19,7 +19,7 @@ export default class RemoveAdminCommand extends Command {
 
     async onSelectMenuInteraction(interaction: SelectMenuInteraction) {
         if (!(await enforceAdmin(interaction))) {
-            return await interaction.reply('You are not an admin');
+            return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
         const discordTags = interaction.values;
@@ -28,13 +28,13 @@ export default class RemoveAdminCommand extends Command {
 
         await User.updateMany({ discordTag: { $in: discordTags } }, { $set: { admin: false } });
 
-        await interaction.reply(`Removed from the admin group: ${discordTags.join(', ')}`);
+        await interaction.reply({ content: `Removed from the admin group: ${discordTags.join(', ')}`, ephemeral: true });
 
     }
 
     async onCommandInteraction(interaction: CommandInteraction) {
         if (!(await enforceAdmin(interaction))) {
-            return await interaction.reply('You are not an admin');
+            return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
         const currentUser = await getCurrentUser(interaction);
@@ -45,7 +45,7 @@ export default class RemoveAdminCommand extends Command {
         });
 
         if (adminUsers.length === 0) {
-            return await interaction.reply('There are no other admins than you!');
+            return await interaction.reply({ content: 'There are no other admins than you!', ephemeral: true });
         }
 
         const row = new MessageActionRow().addComponents(
@@ -61,7 +61,7 @@ export default class RemoveAdminCommand extends Command {
                 ])
         );
 
-        await interaction.reply({ content: 'Ok!', components: [row] });
+        await interaction.reply({ content: 'Ok!', ephemeral: true, components: [row] });
     }
 
     async register() {

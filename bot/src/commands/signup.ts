@@ -21,12 +21,12 @@ export default class SignupCommand extends Command {
 
         if (!currentUser)
             return await interaction.reply(
-                `You need to /enroll first`
+                { content: `You need to /enroll first`, ephemeral: true }
             );
 
         if (!currentUser.epicId || !currentUser.epicName)
             return await interaction.reply(
-                `You need to link your Epic account first! use /link-epic first`
+                { content: `You need to link your Epic account first! use /link-epic first`, ephemeral: true }
             );
 
         const { values: [value] } = interaction;
@@ -37,7 +37,7 @@ export default class SignupCommand extends Command {
             (u: IUser) => u._id.toString() === currentUser._id.toString()
         );
         if (!!found)
-            return await interaction.reply('You are already signed up!');
+            return await interaction.reply({ content: 'You are already signed up!', ephemeral: true });
 
         await Cup.updateOne(
             { _id: cup._id },
@@ -45,7 +45,7 @@ export default class SignupCommand extends Command {
         );
 
         return await interaction.reply(
-            `Successfully signed up for **${cup.title}**`
+            { content: `Successfully signed up for **${cup.title}**`, ephemeral: true }
         );
     }
 
@@ -56,7 +56,7 @@ export default class SignupCommand extends Command {
         });
 
         if (cups.length === 0) {
-            return await interaction.reply('There are no cups available!');
+            return await interaction.reply({ content: 'There are no cups available!', ephemeral: true });
         }
 
         const row = new MessageActionRow().addComponents(
@@ -75,6 +75,7 @@ export default class SignupCommand extends Command {
         await interaction.reply({
             content: 'Please choose a cup',
             components: [row],
+            ephemeral: true,
         });
     }
 

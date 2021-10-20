@@ -17,7 +17,7 @@ export default class CreateCupCommand extends Command {
 
     async onCommandInteraction(interaction: CommandInteraction) {
         if (!(await enforceAdmin(interaction))) {
-            return await interaction.reply('You are not an admin');
+            return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
         const cupName = interaction.options.getString('name');
@@ -31,7 +31,7 @@ export default class CreateCupCommand extends Command {
 
         await cup.save();
 
-        return await interaction.reply(`Cup ${cupName} created!`);
+        return await interaction.reply({ content: `Cup ${cupName} created!`, ephemeral: true });
     }
 
     async register() {

@@ -13,7 +13,7 @@ export default class PingCommand extends Command {
     async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
 
     async onCommandInteraction(interaction: CommandInteraction) {
-        return await interaction.reply('pong!!!');
+        return await interaction.reply({ content: 'pong!!!', ephemeral: true });
     }
 
     async register() {

@@ -17,7 +17,7 @@ export default class CleanChannelsCommand extends Command {
     async onCommandInteraction(interaction: CommandInteraction) {
 
         if (!(await enforceAdmin(interaction))) {
-            return await interaction.reply('You are not an admin');
+            return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
         const guild = await this.client.guilds.fetch(Config.discord_guild_id);
@@ -26,7 +26,7 @@ export default class CleanChannelsCommand extends Command {
             c.delete();
         })
 
-        return await interaction.reply('done');
+        return await interaction.reply({ content: 'done', ephemeral: true });
     }
 
     async register() {
