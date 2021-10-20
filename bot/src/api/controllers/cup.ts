@@ -1,8 +1,7 @@
-import fs from "fs/promises";
+import fs from 'fs/promises';
 import { Get, JsonController, NotFoundError, Param } from 'routing-controllers';
 import Cup from '../../models/cup';
-import getStoragePath from "../../utils/storage-path";
-
+import getStoragePath from '../../utils/storage-path';
 
 @JsonController()
 export default class CupController {
@@ -10,12 +9,15 @@ export default class CupController {
     async getAll() {
         const cups = await Cup.find();
 
-        return cups.map(c => c.toObject());
+        return cups.map((c) => c.toObject());
     }
 
     @Get('/cup/:id')
     async getOne(@Param('id') _id: string) {
-        const obj = await Cup.findOne({ _id }).populate("challengers");
+        const obj = await Cup.findOne({ _id })
+            .populate(['challengers', 'matches'])
+            .populate({ path: 'matches', populate: { path: 'highSeedPlayer' } })
+            .populate({ path: 'matches', populate: { path: 'lowSeedPlayer' } });
 
         if (!obj) throw new NotFoundError('Cup not found');
 
@@ -25,9 +27,9 @@ export default class CupController {
             const data = await fs.readFile(cupStorage, 'utf8');
             const cupData = JSON.parse(data);
 
-            return ({ cup, cupData });
+            return { cup, cupData };
         } catch (e) {
-            return ({ cup });
+            return { cup };
         }
     }
 }

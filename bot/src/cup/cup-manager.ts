@@ -129,20 +129,6 @@ export default class CupManager {
             matchToBePlayed
         );
 
-        const m = new Match();
-
-        m.bracketMatchData = match;
-        m.maps = maps;
-        m.highSeedPlayer = op1User;
-        m.lowSeedPlayer = op2User;
-
-        await m.save();
-
-        const cup = await Cup.findOne({ _id: this.cup._id });
-
-        cup.matches = [...cup.matches, m._id];
-
-        await cup.save();
 
         const manager = this.getManager();
 
@@ -209,6 +195,17 @@ export default class CupManager {
                 break;
             }
         }
+
+        // Save match information in the database
+        const m = new Match();
+        m.bracketMatchData = match;
+        m.maps = maps;
+        m.highSeedPlayer = op1User;
+        m.lowSeedPlayer = op2User;
+        await m.save();
+        const cup = await Cup.findOne({ _id: this.cup._id });
+        cup.matches = [...cup.matches, m._id];
+        await cup.save();
 
         const matchUpdate = {
             id: match.id,

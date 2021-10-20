@@ -32,8 +32,9 @@ export default class ReportCommand extends Command {
         await interaction.deferReply();
 
         const res = await cupManager.reportMatchScore(matchChannelTopic.match);
-        if (!res)
-            await interaction.editReply('Cannot report match score, contact admin');
+        if (!res) {
+            return await interaction.editReply('Cannot report match score, contact admin');
+        }
 
 
         await interaction.editReply('Match score reported ! thanks');

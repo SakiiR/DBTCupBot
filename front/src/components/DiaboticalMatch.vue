@@ -417,9 +417,7 @@ const teamColors = getTeamColors();
 
 export default {
   name: "DiaboticalMatch",
-  setup() {
-    useQuasar().dark.set(true);
-  },
+  setup() {},
   props: {
     match: Object,
   },

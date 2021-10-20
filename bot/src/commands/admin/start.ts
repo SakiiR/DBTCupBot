@@ -1,8 +1,10 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
-import { CommandInteraction, MessageActionRow, MessageSelectMenu, SelectMenuInteraction } from "discord.js";
+import { CommandInteraction, MessageActionRow, MessageSelectMenu, SelectMenuInteraction, UserFlags } from "discord.js";
+import signale from 'signale';
 import CupManager from '../../cup/cup-manager';
 import Cup from '../../models/cup';
-import { IUser } from '../../models/user';
+import User, { IUser } from '../../models/user';
+import DiaboticalService from '../../services/diabotical';
 import enforceAdmin from '../../utils/enforce-admin-interaction';
 import Command from '../command';
 
@@ -35,6 +37,18 @@ export default class StartCupCommand extends Command {
 
 
         const participants = cup.challengers.map((challenger) => `\`${challenger.epicName}\``).join(", ");
+
+        signale.debug("Updating rating for all players");
+        for (const c of challengers) {
+            const user = await User.findOne({ discordTag: c.discordTag });
+
+            user.rating = await DiaboticalService.getUserRating(user.epicId) || 0;
+
+            await user.save();
+        }
+        signale.debug("Updated rating for all players");
+
+
 
         let msg = (
             `Starting cup **${cup.title}**\n` +
