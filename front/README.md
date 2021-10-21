@@ -1,6 +1,6 @@
 # DBT Cup (dbtcupfront)
 
-A Quasar Framework app
+DBT Cup bracket viewer
 
 ## Install the dependencies
 ```bash

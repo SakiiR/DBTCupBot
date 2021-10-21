@@ -147,7 +147,7 @@ module.exports = configure(function (ctx) {
       manifest: {
         name: `DBT Cup`,
         short_name: `DBT Cup`,
-        description: `A Quasar Framework app`,
+        description: `DBT Cup bracket viewer`,
         display: "standalone",
         orientation: "portrait",
         background_color: "#ffffff",
