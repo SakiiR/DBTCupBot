@@ -18,6 +18,7 @@ services:
             MONGO_URL: 'mongodb://db:27017/dbtcup'
         volumes:
             - './volumes/cups:/data/cup-storage'
+        restart: 'always'
     front:
         build:
             context: './front'
