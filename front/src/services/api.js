@@ -22,4 +22,34 @@ export default class APIService {
 
     return json;
   }
+
+  /**
+   * Adjust the seeding of a cup
+   *
+   * @param {*} cupId The cup identifier
+   * @param {*} player The player to be adjusted
+   * @param {*} direction The direction the player should be moved to
+   * @returns the new seeding
+   */
+  static async adjustSeeding(cupId, player, direction) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/seeding?${ts}`;
+    const method = "PUT";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      player,
+      direction,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
 }

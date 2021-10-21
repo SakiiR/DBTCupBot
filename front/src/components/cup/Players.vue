@@ -29,15 +29,56 @@
           <q-chip>{{ props.value }}</q-chip>
         </q-td>
       </template>
+
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props">
+          <q-btn
+            v-if="isAdmin"
+            @click="adjustSeeding(props.row._id, 'up')"
+            flat
+            dense
+            round
+            icon="arrow_upward"
+          />
+
+          <q-btn
+            v-if="isAdmin"
+            @click="adjustSeeding(props.row._id, 'down')"
+            flat
+            dense
+            round
+            icon="arrow_downward"
+          />
+        </q-td>
+      </template>
     </q-table>
   </div>
 </template>
 
 <script>
+import APIService from "src/services/api";
+import { mapState } from "vuex";
+
 export default {
   name: "CupPlayers",
   props: {
     cup: Object,
+  },
+  computed: mapState({
+    user: (state) => state.general.user,
+    authenticated: (state) => !!state.general.user,
+    isAdmin: (state) => !!state.general.user && state.general.user.admin,
+  }),
+  methods: {
+    async adjustSeeding(user, direction) {
+      const challengers = await APIService.adjustSeeding(
+        this.cup.cup._id,
+        user,
+        direction
+      );
+
+      this.$emit("update");
+    },
   },
   data() {
     const columns = [
@@ -66,10 +107,10 @@ export default {
         align: "left",
         sortable: true,
       },
-      // {
-      //   name: "actions",
-      //   label: "Actions",
-      // },
+      {
+        name: "actions",
+        label: "Actions",
+      },
     ];
 
     return {

@@ -23,4 +23,11 @@ export default defineComponent({
   padding: 10%;
   padding-top: 20px;
 }
+
+a,
+a:visited,
+a:hover,
+a:active {
+  color: inherit;
+}
 </style>

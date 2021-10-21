@@ -12,6 +12,7 @@ export interface ICup {
     maps: string[];
     over: boolean;
     started: boolean;
+    automaticSeeding: boolean;
     data: any;
 }
 
@@ -27,6 +28,7 @@ const schema = new Schema<ICup>({
     maps: [{ type: String }],
     over: { type: Boolean, default: false },
     started: { type: Boolean, default: false },
+    automaticSeeding: { type: Boolean, default: false },
     data: { type: Object, default: {} },
 });
 

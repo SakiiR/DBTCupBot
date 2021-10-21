@@ -21,7 +21,7 @@
 
       <div class="row">
         <div class="col-9">
-          <cup-players :cup="cup" />
+          <cup-players :cup="cup" @update="this.getCup()" />
         </div>
         <div class="col-1"></div>
         <div class="col-2">

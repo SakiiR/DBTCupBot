@@ -598,9 +598,14 @@ export default class CupManager {
     }
 
     private async getSeeding(): Promise<Seeding> {
-        const sortedByRankPos = [...this.cup.challengers].sort(
-            (a: IUser, b: IUser) => b.rating - b.rating
-        );
+        let sortedByRankPos = [...this.cup.challengers];
+
+        if (this.cup.automaticSeeding) {
+            signale.debug("Automatic seeding ...");
+            sortedByRankPos = sortedByRankPos.sort(
+                (a: IUser, b: IUser) => b.rating - b.rating
+            );
+        }
 
         const powerOfTwo = (num: number) => Math.log2(num) % 1 === 0;
         while (!powerOfTwo(sortedByRankPos.length)) {
