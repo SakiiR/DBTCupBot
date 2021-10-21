@@ -30,6 +30,8 @@ export default class ListPlayersCommand extends Command {
                 return `• ${discordName} / ${epicName}`;
             }
         ).join('\n');
+	
+	if (!cup.challengers.length) return await interaction.reply({ content: "No players yet", ephemeral: true });
 
 
         return await interaction.reply({ content: str, ephemeral: true });
