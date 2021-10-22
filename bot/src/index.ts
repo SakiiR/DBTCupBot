@@ -69,6 +69,12 @@ async function fixtures(client: DiscordClient) {
 }
 
 async function main() {
+
+
+    signale.config({
+        displayDate: true
+    })
+
     signale.info('Configuration: ');
     console.log(getPrintableConfig());
 
