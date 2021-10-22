@@ -73,6 +73,7 @@ async function main() {
 
     signale.config({
         displayDate: true
+        displayTimestamp: true
     })
 
     signale.info('Configuration: ');
