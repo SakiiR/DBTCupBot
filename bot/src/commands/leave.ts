@@ -4,6 +4,7 @@ import {
     MessageActionRow,
     MessageSelectMenu,
     SelectMenuInteraction,
+    TextChannel
 } from 'discord.js';
 import getCurrentUser from '../utils/get-interaction-user';
 
@@ -11,6 +12,7 @@ import getCurrentUser from '../utils/get-interaction-user';
 import { IUser } from '../models/user';
 import Cup from '../models/cup';
 import Command from './command';
+import Config from '../config';
 
 export default class LeaveCommand extends Command {
     _name = 'leave';
@@ -36,6 +38,12 @@ export default class LeaveCommand extends Command {
             { _id: cup._id },
             { $pull: { challengers: currentUser._id } }
         );
+
+        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
+        const channels = await guild.channels.fetch();
+        const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+
+        await announcementChannel.send(`**${currentUser.epicName}** left the cup **${cup.title}**`);
 
         return await interaction.reply(
             { content: `Successfully left  **${cup.title}**`, ephemeral: true }
