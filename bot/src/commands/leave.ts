@@ -75,6 +75,7 @@ export default class LeaveCommand extends Command {
 
         await interaction.reply({
             content: 'Please choose a cup to leave',
+            ephemeral: true,
             components: [row],
         });
     }
