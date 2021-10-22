@@ -1,7 +1,7 @@
 {
   "name": "dbtcupfront",
   "version": "0.0.1",
-  "description": "A Quasar Framework app",
+  "description": "DBT Cup bracket viewer",
   "productName": "DBT Cup",
   "author": "SakiiR <sakiir@protonmail.com>",
   "private": true,
