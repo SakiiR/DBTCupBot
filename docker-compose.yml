@@ -14,6 +14,7 @@ services:
             REDIRECT_URI: '${REDIRECT_URI}'
             FILL_DATABASE: '${FILL_DATABASE}'
             API_SECRET: '${API_SECRET}'
+            ANNOUNCEMENT_CHANNEL: '${ANNOUNCEMENT_CHANNEL}'
             CUP_STORAGE: '/data/cup-storage'
             MONGO_URL: 'mongodb://db:27017/dbtcup'
         volumes:
