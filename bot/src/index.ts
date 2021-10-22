@@ -72,7 +72,7 @@ async function main() {
 
 
     signale.config({
-        displayDate: true
+        displayDate: true,
         displayTimestamp: true
     })
 

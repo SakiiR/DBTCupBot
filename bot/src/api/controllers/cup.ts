@@ -1,6 +1,6 @@
-import { IsIn, IsUUID } from 'class-validator';
+import { IsIn, IsNotEmpty, IsUUID } from 'class-validator';
 import fs from 'fs/promises';
-import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, JsonController, NotFoundError, Param, Put } from 'routing-controllers';
+import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, JsonController, NotFoundError, Param, Post, Put } from 'routing-controllers';
 import User, { IUser } from "../../models/user";
 import Cup from '../../models/cup';
 import getStoragePath from '../../utils/storage-path';
@@ -12,6 +12,12 @@ class AdjustSeedingRequest {
     @IsIn(['down', 'up'])
     direction: string;
 };
+
+class AddOrRemoveMapRequest {
+    @IsNotEmpty()
+    name: string;
+};
+
 
 @JsonController()
 export default class CupController {
@@ -74,5 +80,38 @@ export default class CupController {
         await Cup.updateOne({ _id }, { $set: { challengers: playerList } });
 
         return playerList;
+    }
+
+    @Post('/cup/:id/addMap')
+    async addMap(@Param('id') _id: string, @Body() addMapRequest: AddOrRemoveMapRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id })
+            .populate(['challengers', 'matches']);
+
+        if (!cup) throw new NotFoundError('Cup not found');
+
+        if (!cup.maps.includes(addMapRequest.name))
+            cup.maps.push(addMapRequest.name);
+
+        await cup.save();
+
+        return cup.maps;
+    }
+
+    @Post('/cup/:id/removeMap')
+    async removeMap(@Param('id') _id: string, @Body() removeMapRequest: AddOrRemoveMapRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id })
+            .populate(['challengers', 'matches']);
+
+        if (!cup) throw new NotFoundError('Cup not found');
+
+        cup.maps = cup.maps.filter(m => m !== removeMapRequest.name);
+
+        await cup.save();
+
+        return cup.maps;
     }
 }

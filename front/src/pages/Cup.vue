@@ -25,7 +25,7 @@
         </div>
         <div class="col-1"></div>
         <div class="col-2">
-          <cup-maps :cup="cup" />
+          <cup-maps :cup="cup" @update="this.getCup()" />
         </div>
       </div>
     </div>

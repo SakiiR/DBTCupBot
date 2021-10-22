@@ -11,11 +11,15 @@ export default class BeerCommand extends Command {
 
     async onCommandInteraction(interaction: CommandInteraction) {
 
-        if ([
+        const tag = interaction.user.tag.toLowerCase();
+
+        const allowList = [
             "SakiiR#3822",
             "Chamo#1049",
             "Code187#3370",
-        ].map(t => t.toLowerCase()).indexOf(interaction.user.tag.toLowerCase()) !== -1) {
+        ].map(t => t.toLowerCase());
+
+        if (allowList.includes(tag)) {
             return await interaction.reply(':beer:');
         }
 

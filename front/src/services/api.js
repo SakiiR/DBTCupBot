@@ -52,4 +52,46 @@ export default class APIService {
 
     return json;
   }
+
+  static async addMap(cupId, name) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/addMap?${ts}`;
+    const method = "POST";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      name,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async removeMap(cupId, name) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/removeMap?${ts}`;
+    const method = "POST";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      name,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
 }
