@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
-import { CurrentUser, Get, JsonController, OnNull, OnUndefined, QueryParam, Redirect, Req, Res } from 'routing-controllers';
-import signale from "signale";
+import { CurrentUser, Get, JsonController, OnUndefined, QueryParam, Redirect, Req } from 'routing-controllers';
 import Config from "../../config";
 import User, { IUser } from "../../models/user";
 
@@ -27,9 +26,9 @@ export default class AuthController {
 
         const oauthData = await oauthResponse.json();
 
-        if (!oauthData.access_token) {
+        if (!oauthData.access_token)
             return "?error=Invalid configuration";
-        }
+
 
 
         const response = await fetch('https://discord.com/api/users/@me', {
@@ -44,9 +43,9 @@ export default class AuthController {
 
         const user = await User.findOne({ discordTag });
 
-        if (!user) {
+        if (!user)
             return "?error=Invalid User";
-        }
+
         req.session.user = user;
     }
 
