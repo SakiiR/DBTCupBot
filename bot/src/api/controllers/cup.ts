@@ -58,6 +58,8 @@ export default class CupController {
     async joinCup(@Body() joinCupRequest: JoinOrLeaveCupRequest, @CurrentUser() user?: IUser) {
         if (!user) throw new ForbiddenError('You are not authorized');
 
+        if (!user.epicName || !user.epicId) throw new ForbiddenError('You have to link your epic games account first');
+
         const cupId = joinCupRequest.id;
 
         const cup = await Cup.findOne({ _id: cupId }).populate('challengers');
