@@ -22,10 +22,15 @@ export default class ReportCommand extends Command {
         const channel = interaction.channel as BaseGuildTextChannel;
         const matchChannelTopic = Serializer.deserialize<MatchChannelTopic>(channel.topic);
 
-        const cup = await Cup.findOne({ _id: matchChannelTopic.cupId });
-        if (!cup) {
+        if (!matchChannelTopic)
             return await interaction.reply({ content: `The channel topic might be invalid, please contact admins`, ephemeral: true });
-        }
+
+
+
+        const cup = await Cup.findOne({ _id: matchChannelTopic.cupId });
+        if (!cup)
+            return await interaction.reply({ content: `The channel topic might be invalid, please contact admins`, ephemeral: true });
+
 
         const cupManager = new CupManager(this.client, cup);
 
