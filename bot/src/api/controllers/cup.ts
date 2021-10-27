@@ -18,6 +18,11 @@ class AddOrRemoveMapRequest {
     name: string;
 };
 
+class JoinOrLeaveCupRequest {
+    @IsNotEmpty()
+    id: string;
+}
+
 
 @JsonController()
 export default class CupController {
@@ -48,6 +53,54 @@ export default class CupController {
             return { cup };
         }
     }
+
+    @Post('/cup/join')
+    async joinCup(@Body() joinCupRequest: JoinOrLeaveCupRequest, @CurrentUser() user?: IUser) {
+        if (!user) throw new ForbiddenError('You are not authorized');
+
+        const cupId = joinCupRequest.id;
+
+        const cup = await Cup.findOne({ _id: cupId }).populate('challengers');
+
+        if (!cup) throw new NotFoundError('Cup not found');
+
+        const challengers = [...cup.challengers];
+
+        const found = challengers.find((c: IUser) => c.discordTag === user.discordTag);
+        if (!!found) throw new BadRequestError("You already joined this cup");
+
+
+        const playerList = [...challengers.map((c: IUser) => c._id), user._id];
+
+        await Cup.updateOne({ _id: cupId }, { $set: { challengers: playerList } });
+
+        return playerList;
+    }
+
+    @Post('/cup/leave')
+    async leaveCup(@Body() leaveCupRequest: JoinOrLeaveCupRequest, @CurrentUser() user?: IUser) {
+        if (!user) throw new ForbiddenError('You are not authorized');
+
+        const cupId = leaveCupRequest.id;
+
+        const cup = await Cup.findOne({ _id: cupId }).populate('challengers');
+
+        if (!cup) throw new NotFoundError('Cup not found');
+
+        const challengers = [...cup.challengers]
+
+
+        const found = challengers.find((c: IUser) => c.discordTag === user.discordTag);
+        if (!found) throw new BadRequestError("You are not part of this cup");
+
+
+        const playerList = challengers.filter((c: IUser) => c.discordTag !== user.discordTag).map((c: IUser) => c._id);
+
+        await Cup.updateOne({ _id: cupId }, { $set: { challengers: playerList } });
+
+        return playerList;
+    }
+
 
     @Put('/cup/:id/seeding')
     async adjustSeeding(@Param('id') _id: string, @Body() adjustSeedingRequest: AdjustSeedingRequest, @CurrentUser() user?: IUser) {

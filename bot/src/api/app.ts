@@ -50,8 +50,8 @@ export default class App {
 
         useExpressServer(this.app, {
             controllers: [CupController, AuthController],
-            middlewares: [CustomErrorHandler],
-            defaultErrorHandler: false,
+            // middlewares: [CustomErrorHandler],
+            //defaultErrorHandler: false,
             routePrefix: '/api',
             currentUserChecker: async (action: Action) => {
                 return action?.request?.session?.user;

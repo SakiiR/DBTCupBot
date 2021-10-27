@@ -23,6 +23,69 @@ export default class APIService {
     return json;
   }
 
+  static async joinCup(cupId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/join?${ts}`;
+    const method = "POST";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      id: cupId,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async linkEpic(epicId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/link-epic?${ts}`;
+    const method = "POST";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      id: epicId,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async leaveCup(cupId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/leave?${ts}`;
+    const method = "POST";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      id: cupId,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
   /**
    * Adjust the seeding of a cup
    *

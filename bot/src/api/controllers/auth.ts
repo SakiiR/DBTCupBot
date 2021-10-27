@@ -1,8 +1,15 @@
+import { IsNotEmpty } from "class-validator";
 import fetch from "node-fetch";
-import { CurrentUser, Get, JsonController, OnUndefined, QueryParam, Redirect, Req } from 'routing-controllers';
+import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, InternalServerError, JsonController, OnUndefined, Post, QueryParam, Redirect, Req } from 'routing-controllers';
+import signale from "signale";
 import Config from "../../config";
 import User, { IUser } from "../../models/user";
+import DiaboticalService from "../../services/diabotical";
 
+class LinkEpicRequest {
+    @IsNotEmpty()
+    id: string;
+}
 
 @JsonController()
 export default class AuthController {
@@ -54,5 +61,30 @@ export default class AuthController {
     @OnUndefined(401)
     async me(@CurrentUser() user?: IUser) {
         return user;
+    }
+
+    @Post('/link-epic')
+    async linkEpic(@Body() linkEpicRequest: LinkEpicRequest, @CurrentUser() u?: IUser) {
+        if (!u) throw new ForbiddenError('You are not authorized');
+
+        const epicId = linkEpicRequest.id;
+
+        const { discordTag } = u;
+
+        const user = await User.findOne({ discordTag });
+        if (!user) throw new InternalServerError('Invalid logged in user');
+
+        // Validate Epic ID
+        const epicUser = await DiaboticalService.getUser(epicId);
+        if (!epicUser) throw new BadRequestError('Invalid epic id provided');
+
+        user.epicId = epicId;
+        user.epicName = epicUser.name;
+        user.rating = (await DiaboticalService.getUserRating(epicId) || 0);
+
+
+        await user.save();
+
+        return u;
     }
 }

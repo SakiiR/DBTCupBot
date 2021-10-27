@@ -1,7 +1,27 @@
 <template>
   <q-page>
     <div v-if="!!cup">
-      <h3>{{ cup.title }}</h3>
+      <div class="row">
+        <q-toolbar class="bg-primary text-white q-my-md shadow-2">
+          <span>{{ cup.cup.title }}</span>
+          <q-space />
+          <q-separator />
+          <q-btn
+            v-if="authenticated && !cupJoined"
+            flat
+            color="positive"
+            label="Join"
+            @click="joinCup()"
+          />
+          <q-btn
+            v-if="authenticated && cupJoined"
+            flag
+            color="negative"
+            label="Leave"
+            @click="leaveCup()"
+          />
+        </q-toolbar>
+      </div>
 
       <div class="row">
         <div class="col-12">
@@ -38,6 +58,7 @@ import CupPlayers from "src/components/cup/Players.vue";
 import CupMaps from "src/components/cup/Maps.vue";
 import CupBracket from "src/components/cup/Bracket.vue";
 import CupMatches from "src/components/cup/Matches.vue";
+import { mapState } from "vuex";
 
 export default {
   name: "Cup",
@@ -55,11 +76,45 @@ export default {
   mounted() {
     this.getCup();
   },
+  computed: {
+    ...mapState({
+      user: (state) => state.general.user,
+      authenticated: (state) => !!state.general.user,
+    }),
+    cupJoined() {
+      if (!this.authenticated) return false;
+      if (!this.cup) return false;
+
+      const { cup } = this.cup;
+
+      return !!cup.challengers.find(
+        (c) => c.discordTag === this.user.discordTag
+      );
+    },
+  },
   methods: {
     async getCup() {
       const cup = await APIService.cup(this.$route.params.id);
 
       this.cup = cup;
+    },
+
+    async joinCup() {
+      await APIService.joinCup(this.$route.params.id);
+      await this.getCup();
+    },
+    async leaveCup() {
+      this.$q
+        .dialog({
+          title: "Confirm",
+          message: "Are you sure you want to leave this cup ?",
+          cancel: true,
+          persistent: false,
+        })
+        .onOk(async () => {
+          await APIService.leaveCup(this.$route.params.id);
+          await this.getCup();
+        });
     },
   },
 };

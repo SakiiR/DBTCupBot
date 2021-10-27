@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!!cup" style="max-width: 350px">
+  <div v-if="!!cup" style="height: 100%">
     <q-toolbar class="bg-primary text-white shadow-2">
       <q-toolbar-title
         >Maps ({{ cup.cup.maps.length }})
@@ -93,3 +93,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.q-list {
+  height: 90%;
+}
+</style>
