@@ -59,7 +59,14 @@ export default class AuthController {
 
     @Get('/me')
     @OnUndefined(401)
-    async me(@CurrentUser() user?: IUser) {
+    async me(@Req() req: Express.Request, @CurrentUser() user?: IUser) {
+
+        if (!!user) {
+            // Update the user 
+            const u = await User.findOne({ _id: user._id });
+            req.session.user = user;
+        }
+
         return user;
     }
 

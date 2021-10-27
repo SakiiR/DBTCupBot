@@ -28,7 +28,9 @@ export default class UserController {
 
 
     @Put('/users/refresh-rating')
-    async refreshRating(@Res() res: Response) {
+    async refreshRating(@Res() res: Response, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
         const users = await User.find();
 
         for (const user of users) {

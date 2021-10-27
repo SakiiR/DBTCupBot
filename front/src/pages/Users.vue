@@ -5,7 +5,13 @@
         <span>Users</span>
         <q-space />
         <q-separator />
-        <q-btn flat round icon="refresh" @click="refreshRating()">
+        <q-btn
+          v-if="authenticated && isAdmin"
+          flat
+          round
+          icon="refresh"
+          @click="refreshRating()"
+        >
           <q-tooltip>Refresh rating</q-tooltip>
         </q-btn>
       </q-toolbar>
