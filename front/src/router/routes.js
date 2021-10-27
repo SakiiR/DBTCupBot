@@ -6,9 +6,11 @@ const routes = [
       { path: "", component: () => import("pages/Cups.vue") },
       { path: "login", component: () => import("pages/Login.vue") },
       { path: "me", component: () => import("pages/Me.vue") },
+      { path: "users", component: () => import("pages/Users.vue") },
       { path: "cups", component: () => import("pages/Cups.vue") },
       { path: "match/:id", component: () => import("pages/Match.vue") },
       { path: "cup/:id", component: () => import("pages/Cup.vue") },
+      { path: "user/:id", component: () => import("pages/User.vue") },
     ],
   },
 

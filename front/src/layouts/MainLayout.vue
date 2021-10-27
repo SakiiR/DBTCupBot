@@ -12,6 +12,12 @@
           </q-btn>
         </router-link>
 
+        <router-link to="/users">
+          <q-btn flat round dense icon="people" class="q-mr-xs">
+            <q-tooltip> Users </q-tooltip>
+          </q-btn>
+        </router-link>
+
         <router-link to="/login" v-if="!authenticated">
           <q-btn flat round dense icon="vpn_key" class="q-mr-xs">
             <q-tooltip> Authenticate </q-tooltip>

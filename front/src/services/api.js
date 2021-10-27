@@ -23,6 +23,50 @@ export default class APIService {
     return json;
   }
 
+  static async user(id) {
+    const ts = new Date().getTime();
+    const response = await fetch(`/api/user/${id}?${ts}`);
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async getUserLastMatches(epicId) {
+    const url = `https://api.diabotical.com/api/v0/diabotical/users/${epicId}/matches`;
+
+    const response = await fetch(url);
+    const json = await response.json();
+
+    return json.matches;
+  }
+
+  static async listUsers(id) {
+    const ts = new Date().getTime();
+    const response = await fetch(`/api/users?${ts}`);
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async toggleAdmin(userId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/users/toggle-admin?${ts}`;
+    const method = "PUT";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      id: userId,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    return await response.json();
+  }
+
   static async joinCup(cupId) {
     const ts = new Date().getTime();
 
@@ -79,6 +123,23 @@ export default class APIService {
       method,
       headers,
       body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async refreshRating() {
+    const ts = new Date().getTime();
+
+    const url = `/api/users/refresh-rating?${ts}`;
+    const method = "PUT";
+    const headers = { "Content-Type": "application/json" };
+
+    const response = await fetch(url, {
+      method,
+      headers,
     });
 
     const json = await response.json();

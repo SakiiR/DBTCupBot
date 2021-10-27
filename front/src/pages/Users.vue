@@ -1,26 +1,30 @@
 <template>
-  <div v-if="!!cup.cup">
+  <q-page v-if="!!users">
+    <div class="row">
+      <q-toolbar class="bg-primary text-white q-my-md shadow-2">
+        <span>Users</span>
+        <q-space />
+        <q-separator />
+        <q-btn flat round icon="refresh" @click="refreshRating()">
+          <q-tooltip>Refresh rating</q-tooltip>
+        </q-btn>
+      </q-toolbar>
+    </div>
     <q-table
-      :title="`Players (${cup.cup.challengers.length})`"
-      :rows="cup.cup.challengers"
+      :title="`Users (${users.length})`"
+      :rows="users"
       :columns="columns"
       :pagination="initialPagination"
-      row-key="name"
+      row-key="discordTag"
     >
       <template v-slot:body-cell-admin="props">
         <q-td :props="props">
-          <q-icon
-            v-if="!!props.value"
-            name="check"
-            color="positive"
-            style="font-size: 3em"
-          ></q-icon>
-          <q-icon
-            v-if="!!!props.value"
-            name="close"
-            color="negative"
-            style="font-size: 3em"
-          ></q-icon>
+          <q-toggle
+            v-model="{ v: props.value }.v"
+            @click="authenticated && isAdmin && changeAdminess(props.row)"
+            :disable="!(authenticated && isAdmin)"
+            :color="!!props.value ? 'green' : 'red'"
+          />
         </q-td>
       </template>
 
@@ -32,24 +36,6 @@
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
-          <q-btn
-            v-if="isAdmin"
-            @click="adjustSeeding(props.row._id, 'up')"
-            flat
-            dense
-            round
-            icon="arrow_upward"
-          />
-
-          <q-btn
-            v-if="isAdmin"
-            @click="adjustSeeding(props.row._id, 'down')"
-            flat
-            dense
-            round
-            icon="arrow_downward"
-          />
-
           <router-link :to="`/user/${props.row._id}`">
             <q-btn flat round dense icon="double_arrow" class="q-mr-xs">
               <q-tooltip> User {{ props.row.discordTag }} </q-tooltip>
@@ -58,7 +44,7 @@
         </q-td>
       </template>
     </q-table>
-  </div>
+  </q-page>
 </template>
 
 <script>
@@ -66,24 +52,28 @@ import APIService from "src/services/api";
 import { mapState } from "vuex";
 
 export default {
-  name: "CupPlayers",
-  props: {
-    cup: Object,
-  },
+  name: "Users",
   computed: mapState({
     user: (state) => state.general.user,
     authenticated: (state) => !!state.general.user,
     isAdmin: (state) => !!state.general.user && state.general.user.admin,
   }),
+  mounted() {
+    this.getUsers();
+  },
   methods: {
-    async adjustSeeding(user, direction) {
-      const challengers = await APIService.adjustSeeding(
-        this.cup.cup._id,
-        user,
-        direction
-      );
+    async refreshRating() {
+      await APIService.refreshRating();
+      await this.getUsers();
+    },
+    async changeAdminess(user) {
+      await APIService.toggleAdmin(user._id);
+      await this.getUsers();
+    },
+    async getUsers() {
+      const users = await APIService.listUsers();
 
-      this.$emit("update");
+      this.users = users;
     },
   },
   data() {
@@ -121,9 +111,10 @@ export default {
 
     return {
       columns,
+      users: [],
       initialPagination: {
         page: 1,
-        rowsPerPage: 200,
+        rowsPerPage: 0,
       },
     };
   },

@@ -24,7 +24,6 @@ export default {
   },
   methods: {
     async loadMatch() {
-      // 3ce83918-4e0c-49c1-94ce-e253d37471e8
       const response = await fetch(
         `https://api.diabotical.com/api/v0/diabotical/match/${this.id}`
       );

@@ -9,6 +9,7 @@ import AuthController from './controllers/auth';
 
 import session from "express-session";
 import { IUser } from '../models/user';
+import UserController from './controllers/user';
 
 
 declare global {
@@ -49,7 +50,7 @@ export default class App {
         await this.config();
 
         useExpressServer(this.app, {
-            controllers: [CupController, AuthController],
+            controllers: [CupController, AuthController, UserController],
             // middlewares: [CustomErrorHandler],
             //defaultErrorHandler: false,
             routePrefix: '/api',
