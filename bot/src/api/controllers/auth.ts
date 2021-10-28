@@ -1,6 +1,7 @@
 import { IsNotEmpty } from "class-validator";
+import { Response } from "express";
 import fetch from "node-fetch";
-import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, InternalServerError, JsonController, OnUndefined, Post, QueryParam, Redirect, Req } from 'routing-controllers';
+import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, InternalServerError, JsonController, OnUndefined, Post, QueryParam, Redirect, Req, Res } from 'routing-controllers';
 import signale from "signale";
 import Config from "../../config";
 import User, { IUser } from "../../models/user";
@@ -13,19 +14,39 @@ class LinkEpicRequest {
 
 @JsonController()
 export default class AuthController {
+
+
+    @Get('/auth/login')
+    @Redirect("/")
+    async login(@Res() response: Response) {
+        const params = new URLSearchParams({
+            client_id: Config.discord_client_id,
+            redirect_uri: Config.redirect_uri,
+            response_type: 'code',
+            scope: 'identify'
+
+        })
+        const url = `https://discord.com/api/oauth2/authorize?${params}`;
+
+        return url;
+    }
+
+
     @Get('/auth/callback')
     @Redirect("/")
     async callback(@QueryParam('code') code: string, @Req() req: Express.Request) {
+        const data = {
+            client_id: Config.discord_client_id,
+            client_secret: Config.discord_client_secret,
+            code,
+            grant_type: 'authorization_code',
+            redirect_uri: Config.redirect_uri,
+            scope: 'identify',
+        };
+
         const oauthResponse = await fetch('https://discord.com/api/oauth2/token', {
             method: 'POST',
-            body: new URLSearchParams({
-                client_id: Config.discord_client_id,
-                client_secret: Config.discord_client_secret,
-                code,
-                grant_type: 'authorization_code',
-                redirect_uri: Config.redirect_uri,
-                scope: 'identify',
-            }),
+            body: new URLSearchParams(data),
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
@@ -33,8 +54,10 @@ export default class AuthController {
 
         const oauthData = await oauthResponse.json();
 
-        if (!oauthData.access_token)
-            return "?error=Invalid configuration";
+        if (!oauthData.access_token) {
+            signale.warn({ oauthData });
+            return "/?error=Invalid configuration";
+        }
 
 
 
@@ -51,7 +74,7 @@ export default class AuthController {
         const user = await User.findOne({ discordTag });
 
         if (!user)
-            return "?error=Invalid User";
+            return "/?error=Invalid User";
 
         req.session.user = user;
     }

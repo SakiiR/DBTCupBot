@@ -5,7 +5,7 @@
         <q-toolbar class="bg-primary text-white q-my-md shadow-2">
           <span>{{ cup.cup.title }}</span>
           <q-space />
-          <q-separator />
+          <q-separator vertical inset />
           <q-btn
             v-if="authenticated && !cupJoined"
             flat
@@ -19,6 +19,16 @@
             color="negative"
             label="Leave"
             @click="leaveCup()"
+          />
+
+          <q-separator vertical inset size="3px" />
+
+          <q-btn
+            v-if="admin && !cupLocked"
+            flag
+            color="positive"
+            label="Start"
+            @click="startCup()"
           />
         </q-toolbar>
       </div>
@@ -80,7 +90,12 @@ export default {
     ...mapState({
       user: (state) => state.general.user,
       authenticated: (state) => !!state.general.user,
+      admin: (state) => !!state.general.user && state.general.user.admin,
     }),
+    cupLocked() {
+      const { cup } = this.cup;
+      return cup.started || cup.over;
+    },
     cupJoined() {
       if (!this.authenticated) return false;
       if (!this.cup) return false;
@@ -98,12 +113,37 @@ export default {
 
       this.cup = cup;
     },
+    async startCup() {
+      this.$q
+        .dialog({
+          title: "Confirm",
+          message: "Are you sure you want to start this cup ?",
+          cancel: true,
+          persistent: false,
+        })
+        .onOk(async () => {
+          await APIService.startCup(this.cup.cup._id);
+          await this.getCup();
+        });
+    },
 
     async joinCup() {
+      if (this.cupLocked) {
+        return this.$q.notify({
+          color: "negative",
+          message: "The cup is locked",
+        });
+      }
       await APIService.joinCup(this.$route.params.id);
       await this.getCup();
     },
     async leaveCup() {
+      if (this.cupLocked) {
+        return this.$q.notify({
+          color: "negative",
+          message: "The cup is locked",
+        });
+      }
       this.$q
         .dialog({
           title: "Confirm",

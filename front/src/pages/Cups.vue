@@ -7,6 +7,18 @@
         </q-td>
       </template>
 
+      <template v-slot:body-cell-started="props">
+        <q-td :props="props">
+          <bool-icon :value="props.value" />
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-over="props">
+        <q-td :props="props">
+          <bool-icon :value="props.value" />
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <router-link :to="`/cup/${props.row._id}`">
@@ -22,8 +34,13 @@
 
 <script>
 import APIService from "src/services/api";
+import BoolIcon from "src/components/BoolIcon.vue";
+
 export default {
   name: "Cups",
+  components: {
+    BoolIcon,
+  },
   mounted() {
     this.loadCups();
   },

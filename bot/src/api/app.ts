@@ -10,6 +10,7 @@ import AuthController from './controllers/auth';
 import session from "express-session";
 import { IUser } from '../models/user';
 import UserController from './controllers/user';
+import DiscordClient from '../discord/client';
 
 
 declare global {
@@ -20,6 +21,7 @@ declare global {
 
         interface Request {
             session: Session
+            discordClient: DiscordClient
         }
     }
 }
@@ -27,9 +29,11 @@ declare global {
 
 export default class App {
     public app: Application;
+    private client: DiscordClient;
 
-    constructor() {
+    constructor(client: DiscordClient) {
         this.app = express();
+        this.client = client;
     }
 
     private async config(): Promise<void> {
@@ -40,6 +44,12 @@ export default class App {
         }));
 
         this.app.use('/', express.static(path.join(__dirname, 'public')));
+
+        this.app.use((req, res, next) => {
+            req.discordClient = this.client;
+            return next();
+        })
+
     }
 
     /**
@@ -52,7 +62,7 @@ export default class App {
         useExpressServer(this.app, {
             controllers: [CupController, AuthController, UserController],
             // middlewares: [CustomErrorHandler],
-            //defaultErrorHandler: false,
+            defaultErrorHandler: true,
             routePrefix: '/api',
             currentUserChecker: async (action: Action) => {
                 return action?.request?.session?.user;

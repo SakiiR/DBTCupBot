@@ -67,6 +67,27 @@ export default class APIService {
     return await response.json();
   }
 
+  static async startCup(cupId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/start?${ts}`;
+    const method = "POST";
+    const headers = { "Content-Type": "application/json" };
+    const body = JSON.stringify({
+      id: cupId,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers,
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
   static async joinCup(cupId) {
     const ts = new Date().getTime();
 

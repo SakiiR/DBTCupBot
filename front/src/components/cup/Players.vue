@@ -9,18 +9,7 @@
     >
       <template v-slot:body-cell-admin="props">
         <q-td :props="props">
-          <q-icon
-            v-if="!!props.value"
-            name="check"
-            color="positive"
-            style="font-size: 3em"
-          ></q-icon>
-          <q-icon
-            v-if="!!!props.value"
-            name="close"
-            color="negative"
-            style="font-size: 3em"
-          ></q-icon>
+          <bool-icon :value="props.value" />
         </q-td>
       </template>
 
@@ -64,24 +53,35 @@
 <script>
 import APIService from "src/services/api";
 import { mapState } from "vuex";
+import BoolIcon from "../BoolIcon.vue";
 
 export default {
+  components: { BoolIcon },
   name: "CupPlayers",
   props: {
     cup: Object,
   },
-  computed: mapState({
-    user: (state) => state.general.user,
-    authenticated: (state) => !!state.general.user,
-    isAdmin: (state) => !!state.general.user && state.general.user.admin,
-  }),
+  computed: {
+    ...mapState({
+      user: (state) => state.general.user,
+      authenticated: (state) => !!state.general.user,
+      isAdmin: (state) => !!state.general.user && state.general.user.admin,
+    }),
+    cupLocked() {
+      const cup = this.cup.cup;
+      return cup.over || cup.started;
+    },
+  },
   methods: {
     async adjustSeeding(user, direction) {
-      const challengers = await APIService.adjustSeeding(
-        this.cup.cup._id,
-        user,
-        direction
-      );
+      if (this.cupLocked) {
+        return this.$q.notify({
+          type: "negative",
+          message: "The cup cannot be modified",
+        });
+      }
+
+      await APIService.adjustSeeding(this.cup.cup._id, user, direction);
 
       this.$emit("update");
     },

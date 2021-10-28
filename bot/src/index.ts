@@ -48,6 +48,11 @@ async function fixtures(client: DiscordClient) {
     for (const discordTag of Config.admin_tags) {
         const user = new User();
 
+        if (!!await User.findOne({ discordTag })) {
+            continue;
+        }
+
+
         const discordId = await getDiscordIdByTag(client, discordTag);
 
         user.discordId = discordId;
@@ -102,7 +107,7 @@ async function main() {
     signale.success('Bot started');
 
 
-    const app = new App();
+    const app = new App(client);
 
     await app.start();
 }

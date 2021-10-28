@@ -299,7 +299,7 @@ export default class CupManager {
                 id: everyoneRole,
                 deny: [...defaultPermissions],
             },
-            ...[op1DiscordMember, op2DiscordMember].map((id) => ({
+            ...[op1DiscordMember, op2DiscordMember, Config.discord_client_id].map((id) => ({
                 id,
                 allow: [...defaultPermissions],
             })),
@@ -546,6 +546,8 @@ export default class CupManager {
 
             await announcementChannel.send(`And the winner is \`${winner.epicName}\` !`);
             await announcementChannel.send(`Congratulation ${getDiscordTag(winner.discordId)}`);
+
+            await this.setCupOver(true);
         }
     }
 
@@ -619,6 +621,18 @@ export default class CupManager {
         return seeding;
     }
 
+    private async setCupStarted(started: boolean): Promise<void> {
+        const cupId = this.cup._id;
+
+        await Cup.updateOne({ _id: cupId }, { $set: { started } });
+    }
+
+    private async setCupOver(over: boolean): Promise<void> {
+        const cupId = this.cup._id;
+
+        await Cup.updateOne({ _id: cupId }, { $set: { over } });
+    }
+
     public async start() {
         if (!this.cup) {
             signale.fatal(`Starting cup failure: cup is null`);
@@ -650,5 +664,7 @@ export default class CupManager {
         signale.debug(`Cup created, creating channels ...`);
 
         await this.createChannels();
+
+        await this.setCupStarted(true);
     }
 }

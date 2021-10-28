@@ -3,7 +3,15 @@
     <q-toolbar class="bg-primary text-white shadow-2">
       <q-toolbar-title
         >Maps ({{ cup.cup.maps.length }})
-        <q-btn v-if="isAdmin" @click="addMap()" flat dense round icon="add" />
+        <q-btn
+          v-if="isAdmin"
+          :disabled="cupLocked"
+          @click="addMap()"
+          flat
+          dense
+          round
+          icon="add"
+        />
       </q-toolbar-title>
     </q-toolbar>
     <q-list bordered>
@@ -27,6 +35,7 @@
         <q-item-section side>
           <q-btn
             v-if="isAdmin"
+            :disabled="cupLocked"
             @click="removeMap(map)"
             flat
             dense
@@ -48,9 +57,15 @@ export default {
   props: {
     cup: Object,
   },
-  computed: mapState({
-    isAdmin: (state) => !!state.general.user && state.general.user.admin,
-  }),
+  computed: {
+    ...mapState({
+      isAdmin: (state) => !!state.general.user && state.general.user.admin,
+    }),
+    cupLocked() {
+      const cup = this.cup.cup;
+      return cup.over || cup.started;
+    },
+  },
   methods: {
     addMap() {
       this.$q

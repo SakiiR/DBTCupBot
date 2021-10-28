@@ -1,9 +1,11 @@
 import { IsIn, IsNotEmpty, IsUUID } from 'class-validator';
 import fs from 'fs/promises';
-import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, JsonController, NotFoundError, Param, Post, Put } from 'routing-controllers';
+import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, InternalServerError, JsonController, NotFoundError, OnUndefined, Param, Post, Put, Req } from 'routing-controllers';
 import User, { IUser } from "../../models/user";
 import Cup from '../../models/cup';
 import getStoragePath from '../../utils/storage-path';
+import CupManager from '../../cup/cup-manager';
+import { Request } from 'express';
 
 class AdjustSeedingRequest {
     @IsUUID('4')
@@ -19,6 +21,11 @@ class AddOrRemoveMapRequest {
 };
 
 class JoinOrLeaveCupRequest {
+    @IsNotEmpty()
+    id: string;
+}
+
+class StartCupRequest {
     @IsNotEmpty()
     id: string;
 }
@@ -66,6 +73,8 @@ export default class CupController {
 
         if (!cup) throw new NotFoundError('Cup not found');
 
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
         const challengers = [...cup.challengers];
 
         const found = challengers.find((c: IUser) => c.discordTag === user.discordTag);
@@ -89,6 +98,8 @@ export default class CupController {
 
         if (!cup) throw new NotFoundError('Cup not found');
 
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
         const challengers = [...cup.challengers]
 
 
@@ -108,16 +119,18 @@ export default class CupController {
     async adjustSeeding(@Param('id') _id: string, @Body() adjustSeedingRequest: AdjustSeedingRequest, @CurrentUser() user?: IUser) {
         if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
 
-        const obj = await Cup.findOne({ _id })
+        const cup = await Cup.findOne({ _id })
             .populate(['challengers', 'matches']);
 
-        if (!obj) throw new NotFoundError('Cup not found');
+        if (!cup) throw new NotFoundError('Cup not found');
+
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
 
         const found = await User.findOne({ _id: adjustSeedingRequest.player });
         if (!found) throw new BadRequestError("Invalid player");
 
 
-        let playerList = [...obj.challengers.map(c => c._id)];
+        let playerList = [...cup.challengers.map(c => c._id)];
 
 
         function move(array, from, to) {
@@ -146,6 +159,8 @@ export default class CupController {
 
         if (!cup) throw new NotFoundError('Cup not found');
 
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
         if (!cup.maps.includes(addMapRequest.name))
             cup.maps.push(addMapRequest.name);
 
@@ -163,10 +178,46 @@ export default class CupController {
 
         if (!cup) throw new NotFoundError('Cup not found');
 
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
         cup.maps = cup.maps.filter(m => m !== removeMapRequest.name);
 
         await cup.save();
 
         return cup.maps;
     }
+
+    @Post('/cup/start')
+    @OnUndefined(204)
+    async start(@Body() startCupRequest: StartCupRequest, @Req() request: Request, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const _id = startCupRequest.id;
+
+        const cup = await Cup.findOne({ _id }).populate('challengers');
+
+        if (!cup)
+            throw new BadRequestError('Invalid cup id provided');
+
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
+
+        if (cup.challengers.length < 2)
+            throw new InternalServerError('Cup needs at least 2 challengers');
+
+        const challengers: IUser[] = cup.challengers as IUser[];
+
+        for (const challenger of challengers) {
+            if (!challenger.epicId || !challenger.epicName)
+                throw new BadRequestError(`The user ${challenger.discordTag} didn't link its epic account`)
+        }
+
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+
+        await cm.start();
+
+        return cup;
+    }
+
 }

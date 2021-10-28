@@ -1,9 +1,5 @@
 class DBTCup {
   constructor() {}
-
-  async fetchMe() {
-    console.log("fetchMe");
-  }
 }
 
 export const dbtCup = new DBTCup();

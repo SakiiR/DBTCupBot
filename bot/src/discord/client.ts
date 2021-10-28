@@ -8,6 +8,7 @@ import CreateCupCommand from '../commands/admin/create-cup';
 import ForceScoreCommand from '../commands/admin/force-score';
 import ListAdminsCommand from '../commands/admin/list-admins';
 import RemoveAdminCommand from '../commands/admin/remove-admin';
+import ResetChannelsCommand from '../commands/admin/reset-channel';
 import StartCupCommand from '../commands/admin/start';
 import BeerCommand from '../commands/beer';
 import EnrollCommand from '../commands/enroll';
@@ -115,8 +116,14 @@ export default class DiscordClient {
             new ReportCommand(this.client),
             new ForceScoreCommand(this.client),
             new BeerCommand(this.client),
+            new ResetChannelsCommand(this.client)
         ];
 
-        await this.registerCommands();
+        try {
+            await this.registerCommands();
+        } catch (e) {
+            signale.warn("Could not register commands: ");
+            signale.warn(e);
+        }
     }
 }
