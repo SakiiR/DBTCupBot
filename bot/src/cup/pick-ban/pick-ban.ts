@@ -62,9 +62,9 @@ export default abstract class PickBanSystem {
     /**
      * Should return the final choosen map(s)
      */
-    public get(): string[] | string | null {
+    public get(): string[] | null {
         if (this.finished()) {
-            if (this.choosen.length === 1) return this.choosen[0];
+            if (this.choosen.length === 1) return [this.choosen[0]];
             return this.choosen;
         }
         return null;

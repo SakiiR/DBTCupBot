@@ -429,6 +429,10 @@ export default class CupManager {
             return promptPickBan;
         }
 
+        let history = `Initial map list: ${this.cup.maps.join(', ')}\n`;
+        const quoteHistory = msg => `Pick/Ban History: \n\`\`\`\n${msg}\n\`\`\``;
+        const historyMessage = await channel.send(quoteHistory(history));
+
         let message = await buildMapPrompt();
 
         const collector = channel.createMessageComponentCollector({
@@ -436,7 +440,6 @@ export default class CupManager {
             time: 60000000,
         });
 
-        let history = `Initial map list: ${this.cup.maps.join(', ')}\n`;
 
         collector.on('collect', async (interaction: SelectMenuInteraction) => {
             const step = bo.whoPickBan();
@@ -478,19 +481,31 @@ export default class CupManager {
                 )}: -${selectedMap}\n`;
             }
 
+            await historyMessage.edit(quoteHistory(history));
+
             let answer = '';
 
             // answer += `You choose ${selectedMap}\n`;
 
             if (bo.finished()) {
+
+                if (historyMessage.deletable)
+                    await historyMessage.delete();
+
                 answer += `Ready to go =)\n\n`;
-                answer += `Your maps are **${bo.get()}**\n`;
-                answer += `HF GL !\n`;
-                answer += `\n\n`;
+                const maps = bo.get();
+
                 answer += `Map vote history:\n`;
                 answer += `\`\`\`\n`;
                 answer += history;
                 answer += `\`\`\`\n`;
+
+                if (maps.length === 1)
+                    answer += `Your map is **${maps}**\n`;
+                else
+                    answer += `Your maps are **${maps}**\n`;
+                answer += `HF GL !\n`;
+                answer += `\n`;
 
                 if (mapListMessage.deletable) await mapListMessage.delete();
             } else {
