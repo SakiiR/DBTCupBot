@@ -124,7 +124,7 @@ export default class CupManager {
         const op1User = await this.getUserByParticipantId(match.opponent1.id);
         const op2User = await this.getUserByParticipantId(match.opponent2.id);
 
-        const maps = await DiaboticalService.getLastMatches(
+        let maps = await DiaboticalService.getLastMatches(
             op1User.epicId,
             matchToBePlayed
         );
@@ -181,6 +181,7 @@ export default class CupManager {
             if (maps.length === 1) {
                 op1Score = teams[op1TeamId].score;
                 op2Score = teams[op2TeamId].score;
+
                 break;
             }
 
@@ -192,6 +193,10 @@ export default class CupManager {
 
             if (isThatAWin(op1Score, op2Score, matchToBePlayed)) {
                 signale.debug(`It's a win ${op1Score}-${op2Score} Best of ${matchToBePlayed}`)
+                const matchplayed = op1Score + op2Score;
+                // We only keep the corresponding match
+                // If its 2-0, why would we take the third map ( which is probably a wipout match or something)
+                maps = maps.slice(0, matchplayed);
                 break;
             }
         }
