@@ -71,11 +71,14 @@ export default class AuthController {
         const discordUserData = await response.json();
 
         const discordTag = `${discordUserData.username}#${discordUserData.discriminator}`;
+        const discordId = discordUserData.id;
 
         const user = await User.findOne({ discordTag });
 
-        if (!user)
-            return "/?error=Invalid User";
+        if (!user) {
+            const newUser = new User({ discordTag, discordId, rating: 0, admin: false });
+            await newUser.save();
+        }
 
         const token = jwt.sign({ discordTag }, Config.api_secret);
 
