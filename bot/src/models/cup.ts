@@ -14,6 +14,9 @@ export interface ICup {
     started: boolean;
     automaticSeeding: boolean;
     data: any;
+
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 
@@ -32,4 +35,4 @@ const schema = new Schema<ICup>({
     data: { type: Object, default: {} },
 });
 
-export default model<ICup>('Cup', new Schema(schema));
+export default model<ICup>('Cup', new Schema(schema, { timestamps: true }));

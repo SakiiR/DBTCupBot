@@ -10,6 +10,9 @@ export interface IMatch {
     maps: any[] | DiaboticalMatch[];
     highSeedPlayer: IUser | string;
     lowSeedPlayer: IUser | string;
+
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 
@@ -36,4 +39,4 @@ const schema = new Schema<IMatch>({
     },
 });
 
-export default model<IMatch>('Match', new Schema(schema));
+export default model<IMatch>('Match', new Schema(schema, { timestamps: true }));

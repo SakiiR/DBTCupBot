@@ -9,6 +9,8 @@ export interface IUser {
     discordId: string;
     admin: boolean;
     rating: number;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 
@@ -24,4 +26,4 @@ const schema = new Schema<IUser>({
     rating: { type: Number, required: true, unique: false },
 });
 
-export default model<IUser>('User', new Schema(schema));
+export default model<IUser>('User', new Schema(schema, { timestamps: true }));
