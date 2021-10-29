@@ -43,6 +43,7 @@
             dense
             icon="delete"
             class="q-mr-xs"
+            v-if="authenticated && admin"
             :disable="props.row.over || props.row.started"
             @click="removeCup(props.row._id)"
           >
