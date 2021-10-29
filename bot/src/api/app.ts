@@ -9,32 +9,20 @@ import AuthController from './controllers/auth';
 import User, { IUser } from '../models/user';
 import UserController from './controllers/user';
 import DiscordClient from '../discord/client';
-import jwt from "jsonwebtoken";
+import { HttpLogger } from './logger';
+import getUserByToken from "../utils/jwt-check";
 
 
-interface AuthenticationData {
-    discordTag?: string;
-}
 
 declare global {
     namespace Express {
         interface Request {
             discordClient: DiscordClient
+            user?: IUser
         }
     }
 }
 
-async function getUserByToken(token: string): Promise<IUser | null> {
-    try {
-        const { discordTag } = jwt.verify(token, Config.api_secret) as AuthenticationData;
-        if (!discordTag) return null;
-        const user = await User.findOne({ discordTag });
-
-        return user.toObject();
-    } catch (e) {
-        return null;
-    }
-}
 
 
 export default class App {
@@ -53,7 +41,8 @@ export default class App {
         this.app.use((req, res, next) => {
             req.discordClient = this.client;
             return next();
-        })
+        });
+
 
     }
 
@@ -66,7 +55,7 @@ export default class App {
 
         useExpressServer(this.app, {
             controllers: [CupController, AuthController, UserController],
-            // middlewares: [CustomErrorHandler],
+            middlewares: [HttpLogger],
             // defaultErrorHandler: false,
             development: false,
             routePrefix: '/api',
@@ -75,6 +64,8 @@ export default class App {
                 const token = request.headers.authorization;
 
                 const user = await getUserByToken(token);
+
+                action.request.user = user;
 
                 return user;
             },
