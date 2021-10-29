@@ -6,6 +6,7 @@ import signale from "signale";
 import Config from "../../config";
 import User, { IUser } from "../../models/user";
 import DiaboticalService from "../../services/diabotical";
+import jwt from "jsonwebtoken";
 
 class LinkEpicRequest {
     @IsNotEmpty()
@@ -76,20 +77,15 @@ export default class AuthController {
         if (!user)
             return "/?error=Invalid User";
 
-        req.session.user = user;
+        const token = jwt.sign({ discordTag }, Config.api_secret);
+
+        return `/#token?${token}`;
     }
 
 
     @Get('/me')
     @OnUndefined(401)
     async me(@Req() req: Express.Request, @CurrentUser() user?: IUser) {
-
-        if (!!user) {
-            // Update the user 
-            const u = await User.findOne({ _id: user._id });
-            req.session.user = user;
-        }
-
         return user;
     }
 

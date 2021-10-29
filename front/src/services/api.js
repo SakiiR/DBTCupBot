@@ -1,7 +1,18 @@
+import SessionManager from "src/utils/session";
+
+function getHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: SessionManager.get(),
+  };
+}
+
 export default class APIService {
   static async me() {
     const ts = new Date().getTime();
-    const response = await fetch(`/api/me?${ts}`);
+    const response = await fetch(`/api/me?${ts}`, {
+      headers: { ...getHeaders() },
+    });
     const json = await response.json();
 
     return json;
@@ -9,7 +20,9 @@ export default class APIService {
 
   static async cups() {
     const ts = new Date().getTime();
-    const response = await fetch(`/api/cups?${ts}`);
+    const response = await fetch(`/api/cups?${ts}`, {
+      headers: { ...getHeaders() },
+    });
     const json = await response.json();
 
     return json;
@@ -17,15 +30,25 @@ export default class APIService {
 
   static async cup(id) {
     const ts = new Date().getTime();
-    const response = await fetch(`/api/cup/${id}?${ts}`);
+    const response = await fetch(`/api/cup/${id}?${ts}`, {
+      headers: { ...getHeaders() },
+    });
+
     const json = await response.json();
+
+    if (json.name && json.name.includes("Error")) {
+      console.error(json.message);
+      return null;
+    }
 
     return json;
   }
 
   static async user(id) {
     const ts = new Date().getTime();
-    const response = await fetch(`/api/user/${id}?${ts}`);
+    const response = await fetch(`/api/user/${id}?${ts}`, {
+      headers: { ...getHeaders() },
+    });
     const json = await response.json();
 
     return json;
@@ -34,7 +57,9 @@ export default class APIService {
   static async getUserLastMatches(epicId) {
     const url = `https://api.diabotical.com/api/v0/diabotical/users/${epicId}/matches`;
 
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: { ...getHeaders() },
+    });
     const json = await response.json();
 
     return json.matches;
@@ -42,7 +67,9 @@ export default class APIService {
 
   static async listUsers(id) {
     const ts = new Date().getTime();
-    const response = await fetch(`/api/users?${ts}`);
+    const response = await fetch(`/api/users?${ts}`, {
+      headers: { ...getHeaders() },
+    });
     const json = await response.json();
 
     return json;
@@ -53,14 +80,13 @@ export default class APIService {
 
     const url = `/api/users/toggle-admin?${ts}`;
     const method = "PUT";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       id: userId,
     });
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 
@@ -72,14 +98,13 @@ export default class APIService {
 
     const url = `/api/cup/start?${ts}`;
     const method = "POST";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       id: cupId,
     });
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 
@@ -93,14 +118,13 @@ export default class APIService {
 
     const url = `/api/cup/join?${ts}`;
     const method = "POST";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       id: cupId,
     });
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 
@@ -114,14 +138,13 @@ export default class APIService {
 
     const url = `/api/link-epic?${ts}`;
     const method = "POST";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       id: epicId,
     });
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 
@@ -135,14 +158,13 @@ export default class APIService {
 
     const url = `/api/cup/leave?${ts}`;
     const method = "POST";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       id: cupId,
     });
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 
@@ -156,11 +178,10 @@ export default class APIService {
 
     const url = `/api/users/refresh-rating?${ts}`;
     const method = "PUT";
-    const headers = { "Content-Type": "application/json" };
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
     });
 
     const json = await response.json();
@@ -181,7 +202,6 @@ export default class APIService {
 
     const url = `/api/cup/${cupId}/seeding?${ts}`;
     const method = "PUT";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       player,
       direction,
@@ -189,7 +209,7 @@ export default class APIService {
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 
@@ -203,14 +223,13 @@ export default class APIService {
 
     const url = `/api/cup/${cupId}/addMap?${ts}`;
     const method = "POST";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       name,
     });
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 
@@ -224,14 +243,13 @@ export default class APIService {
 
     const url = `/api/cup/${cupId}/removeMap?${ts}`;
     const method = "POST";
-    const headers = { "Content-Type": "application/json" };
     const body = JSON.stringify({
       name,
     });
 
     const response = await fetch(url, {
       method,
-      headers,
+      headers: { ...getHeaders() },
       body,
     });
 

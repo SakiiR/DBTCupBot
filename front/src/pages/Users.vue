@@ -56,6 +56,7 @@
 <script>
 import APIService from "src/services/api";
 import { mapState } from "vuex";
+import wrapLoading from "src/utils/loading";
 
 export default {
   name: "Users",
@@ -69,17 +70,23 @@ export default {
   },
   methods: {
     async refreshRating() {
-      await APIService.refreshRating();
-      await this.getUsers();
+      wrapLoading(this.$q, async () => {
+        await APIService.refreshRating();
+        await this.getUsers();
+      });
     },
     async changeAdminess(user) {
-      await APIService.toggleAdmin(user._id);
-      await this.getUsers();
+      wrapLoading(this.$q, async () => {
+        await APIService.toggleAdmin(user._id);
+        await this.getUsers();
+      });
     },
     async getUsers() {
-      const users = await APIService.listUsers();
+      wrapLoading(this.$q, async () => {
+        const users = await APIService.listUsers();
 
-      this.users = users;
+        this.users = users;
+      });
     },
   },
   data() {

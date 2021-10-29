@@ -74,6 +74,7 @@ async function fixtures(client: DiscordClient) {
 }
 
 async function main() {
+    Error.stackTraceLimit = Infinity;
 
 
     signale.config({

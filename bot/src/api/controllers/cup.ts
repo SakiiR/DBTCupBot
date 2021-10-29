@@ -1,6 +1,6 @@
 import { IsIn, IsNotEmpty, IsUUID } from 'class-validator';
 import fs from 'fs/promises';
-import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, InternalServerError, JsonController, NotFoundError, OnUndefined, Param, Post, Put, Req } from 'routing-controllers';
+import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, HttpError, InternalServerError, JsonController, NotFoundError, OnNull, OnUndefined, Param, Post, Put, Req } from 'routing-controllers';
 import User, { IUser } from "../../models/user";
 import Cup from '../../models/cup';
 import getStoragePath from '../../utils/storage-path';
@@ -188,7 +188,7 @@ export default class CupController {
     }
 
     @Post('/cup/start')
-    @OnUndefined(204)
+    @OnNull(204)
     async start(@Body() startCupRequest: StartCupRequest, @Req() request: Request, @CurrentUser() user?: IUser) {
         if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
 
@@ -197,7 +197,7 @@ export default class CupController {
         const cup = await Cup.findOne({ _id }).populate('challengers');
 
         if (!cup)
-            throw new BadRequestError('Invalid cup id provided');
+            throw new HttpError(400, 'Invalid cup id provided');
 
         if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
 
@@ -209,7 +209,7 @@ export default class CupController {
 
         for (const challenger of challengers) {
             if (!challenger.epicId || !challenger.epicName)
-                throw new BadRequestError(`The user ${challenger.discordTag} didn't link its epic account`)
+                throw new HttpError(400, `The user ${challenger.discordTag} didn't link its epic account`);
         }
 
 
@@ -217,7 +217,7 @@ export default class CupController {
 
         await cm.start();
 
-        return cup;
+        return null;
     }
 
 }

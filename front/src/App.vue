@@ -8,7 +8,14 @@ import { defineComponent } from "vue";
 export default defineComponent({
   name: "App",
   setup() {
-    useQuasar().dark.set(true);
+    const $q = useQuasar();
+    $q.dark.set(true);
+
+    $q.loadingBar.setDefaults({
+      color: "negative",
+      size: "5px",
+      position: "bottom",
+    });
   },
   mounted() {
     window.onerror = function (event) {

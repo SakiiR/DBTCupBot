@@ -644,13 +644,17 @@ export default class CupManager {
     private async setCupStarted(started: boolean): Promise<void> {
         const cupId = this.cup._id;
 
+        signale.debug("Updating started");
         await Cup.updateOne({ _id: cupId }, { $set: { started } });
+        signale.debug("Updated started");
     }
 
     private async setCupOver(over: boolean): Promise<void> {
         const cupId = this.cup._id;
 
+        signale.debug("Updating over");
         await Cup.updateOne({ _id: cupId }, { $set: { over } });
+        signale.debug("Updated over");
     }
 
     public async start() {

@@ -69,6 +69,7 @@ import CupMaps from "src/components/cup/Maps.vue";
 import CupBracket from "src/components/cup/Bracket.vue";
 import CupMatches from "src/components/cup/Matches.vue";
 import { mapState } from "vuex";
+import wrapLoading from "src/utils/loading";
 
 export default {
   name: "Cup",
@@ -109,9 +110,10 @@ export default {
   },
   methods: {
     async getCup() {
-      const cup = await APIService.cup(this.$route.params.id);
-
-      this.cup = cup;
+      wrapLoading(this.$q, async () => {
+        const cup = await APIService.cup(this.$route.params.id);
+        this.cup = cup;
+      });
     },
     async startCup() {
       this.$q
@@ -122,8 +124,10 @@ export default {
           persistent: false,
         })
         .onOk(async () => {
-          await APIService.startCup(this.cup.cup._id);
-          await this.getCup();
+          wrapLoading(this.$q, async () => {
+            await APIService.startCup(this.cup.cup._id);
+            location.reload();
+          });
         });
     },
 
@@ -134,8 +138,11 @@ export default {
           message: "The cup is locked",
         });
       }
-      await APIService.joinCup(this.$route.params.id);
-      await this.getCup();
+
+      wrapLoading(this.$q, async () => {
+        await APIService.joinCup(this.$route.params.id);
+        await this.getCup();
+      });
     },
     async leaveCup() {
       if (this.cupLocked) {
@@ -152,8 +159,10 @@ export default {
           persistent: false,
         })
         .onOk(async () => {
-          await APIService.leaveCup(this.$route.params.id);
-          await this.getCup();
+          wrapLoading(this.$q, async () => {
+            await APIService.leaveCup(this.$route.params.id);
+            await this.getCup();
+          });
         });
     },
   },

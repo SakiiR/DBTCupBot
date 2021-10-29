@@ -27,6 +27,7 @@
 <script>
 import APIService from "src/services/api";
 import DiaboticalAPIMatchVue from "src/components/DiaboticalAPIMatch.vue";
+import wrapLoading from "src/utils/loading";
 
 export default {
   name: "User",
@@ -44,13 +45,15 @@ export default {
   },
   methods: {
     async getUser() {
-      const user = await APIService.user(this.$route.params.id);
+      wrapLoading(this.$q, async () => {
+        const user = await APIService.user(this.$route.params.id);
 
-      this.user = user;
+        this.user = user;
 
-      if (!this.user.epicId) return;
+        if (!this.user.epicId) return;
 
-      this.matches = await APIService.getUserLastMatches(user.epicId);
+        this.matches = await APIService.getUserLastMatches(user.epicId);
+      });
     },
   },
 };

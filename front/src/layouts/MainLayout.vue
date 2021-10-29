@@ -30,6 +30,12 @@
           </q-btn>
         </router-link>
 
+        <router-link to="/logout" v-if="authenticated">
+          <q-btn flat round dense icon="lock" class="q-mr-xs">
+            <q-tooltip> Logout </q-tooltip>
+          </q-btn>
+        </router-link>
+
         <span v-if="authenticated">{{ user.epicName || user.discordTag }}</span>
       </q-toolbar>
     </q-header>

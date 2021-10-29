@@ -23,6 +23,7 @@
 import APIService from "src/services/api";
 import store from "src/store";
 import { mapState } from "vuex";
+import wrapLoading from "src/utils/loading";
 
 const helpLink = `https://www.epicgames.com/help/en-US/epic-accounts-c74/general-support-c79/what-is-an-epic-account-id-and-where-can-i-find-it-a3659`;
 export default {
@@ -47,8 +48,10 @@ export default {
           persistent: false,
         })
         .onOk(async (epicId) => {
-          await APIService.linkEpic(epicId);
-          await store.dispatch("general/fetchMe");
+          wrapLoading(this.$q, async () => {
+            await APIService.linkEpic(epicId);
+            await store.dispatch("general/fetchMe");
+          });
         });
     },
   },

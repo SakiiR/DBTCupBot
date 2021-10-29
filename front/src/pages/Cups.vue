@@ -35,6 +35,7 @@
 <script>
 import APIService from "src/services/api";
 import BoolIcon from "src/components/BoolIcon.vue";
+import wrapLoading from "src/utils/loading";
 
 export default {
   name: "Cups",
@@ -47,9 +48,11 @@ export default {
 
   methods: {
     async loadCups() {
-      const cups = await APIService.cups();
+      wrapLoading(this.$q, async () => {
+        const cups = await APIService.cups();
 
-      this.rows = cups.map((r, index) => ({ ...r, index }));
+        this.rows = cups.map((r, index) => ({ ...r, index }));
+      });
     },
   },
 

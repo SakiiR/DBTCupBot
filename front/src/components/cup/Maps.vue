@@ -51,6 +51,7 @@
 <script>
 import { mapState } from "vuex";
 import APIService from "src/services/api";
+import wrapLoading from "src/utils/loading";
 
 export default {
   name: "CupMaps",
@@ -82,7 +83,9 @@ export default {
         .onOk(async (mapName) => {
           if (!mapName) return;
 
-          await APIService.addMap(this.cup.cup._id, mapName);
+          wrapLoading(this.$q, async () => {
+            await APIService.addMap(this.cup.cup._id, mapName);
+          });
 
           this.$emit("update");
         });
@@ -97,7 +100,9 @@ export default {
           persistent: false,
         })
         .onOk(async () => {
-          await APIService.removeMap(this.cup.cup._id, mapName);
+          wrapLoading(this.$q, async () => {
+            await APIService.removeMap(this.cup.cup._id, mapName);
+          });
 
           this.$emit("update");
         });

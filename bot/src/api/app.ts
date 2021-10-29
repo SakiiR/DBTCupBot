@@ -1,28 +1,38 @@
-import express, { Application } from 'express';
+import express, { Application, Request } from 'express';
 import { Action, useExpressServer } from 'routing-controllers';
 import signale from 'signale';
 import Config from '../config';
 import CupController from './controllers/cup';
-import { CustomErrorHandler } from './errors';
 import path from "path";
 import AuthController from './controllers/auth';
 
-import session from "express-session";
-import { IUser } from '../models/user';
+import User, { IUser } from '../models/user';
 import UserController from './controllers/user';
 import DiscordClient from '../discord/client';
+import jwt from "jsonwebtoken";
 
+
+interface AuthenticationData {
+    discordTag?: string;
+}
 
 declare global {
     namespace Express {
-        interface Session {
-            user?: IUser
-        }
-
         interface Request {
-            session: Session
             discordClient: DiscordClient
         }
+    }
+}
+
+async function getUserByToken(token: string): Promise<IUser | null> {
+    try {
+        const { discordTag } = jwt.verify(token, Config.api_secret) as AuthenticationData;
+        if (!discordTag) return null;
+        const user = await User.findOne({ discordTag });
+
+        return user.toObject();
+    } catch (e) {
+        return null;
     }
 }
 
@@ -37,11 +47,6 @@ export default class App {
     }
 
     private async config(): Promise<void> {
-        this.app.use(session({
-            secret: Config.api_secret,
-            resave: false,
-            saveUninitialized: true,
-        }));
 
         this.app.use('/', express.static(path.join(__dirname, 'public')));
 
@@ -62,13 +67,21 @@ export default class App {
         useExpressServer(this.app, {
             controllers: [CupController, AuthController, UserController],
             // middlewares: [CustomErrorHandler],
-            defaultErrorHandler: true,
+            // defaultErrorHandler: false,
+            development: false,
             routePrefix: '/api',
             currentUserChecker: async (action: Action) => {
-                return action?.request?.session?.user;
+                const request = (action.request as Request);
+                const token = request.headers.authorization;
+
+                const user = await getUserByToken(token);
+
+                return user;
             },
             authorizationChecker: async (action: Action, roles: string[]) => {
-                const user = action?.request?.session?.user as IUser;
+                const request = (action.request as Request);
+                const token = request.headers.authorization;
+                const user = await getUserByToken(token);
 
                 if (!user) return false;
 
@@ -78,7 +91,8 @@ export default class App {
 
                 return true;
             },
-        })
+        });
+
 
         this.app.listen(Config.api_port, () => {
             signale.success(`Started API server @ ::${Config.api_port}`);

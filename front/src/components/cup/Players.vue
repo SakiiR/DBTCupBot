@@ -54,6 +54,7 @@
 import APIService from "src/services/api";
 import { mapState } from "vuex";
 import BoolIcon from "../BoolIcon.vue";
+import wrapLoading from "src/utils/loading";
 
 export default {
   components: { BoolIcon },
@@ -81,7 +82,9 @@ export default {
         });
       }
 
-      await APIService.adjustSeeding(this.cup.cup._id, user, direction);
+      wrapLoading(this.$q, async () => {
+        await APIService.adjustSeeding(this.cup.cup._id, user, direction);
+      });
 
       this.$emit("update");
     },
