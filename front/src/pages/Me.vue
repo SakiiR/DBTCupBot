@@ -2,7 +2,7 @@
   <q-page class="flex flex-center">
     <div class="row">
       <div class="col-12">
-        <q-btn flat @click="linkEpic()">
+        <q-btn flat @click="linkEpic()" :disable="!!user.epicName">
           Link Epic
           <q-avatar size="42px">
             <img src="/img/epic.svg" />
