@@ -257,4 +257,44 @@ export default class APIService {
 
     return json;
   }
+
+  static async createCup(name) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/create?${ts}`;
+    const method = "POST";
+    const body = JSON.stringify({
+      name,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async removeCup(id) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/remove?${ts}`;
+    const method = "DELETE";
+    const body = JSON.stringify({
+      id,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
 }

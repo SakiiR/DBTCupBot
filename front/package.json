@@ -9,6 +9,7 @@
     "lint": "eslint --ext .js,.vue ./",
     "build": "npx quasar build",
     "dev": "npx quasar dev",
+    "start": "yarn dev",
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {

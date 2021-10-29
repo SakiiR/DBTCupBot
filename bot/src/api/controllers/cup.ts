@@ -1,11 +1,12 @@
 import { IsIn, IsNotEmpty, IsUUID } from 'class-validator';
 import fs from 'fs/promises';
-import { BadRequestError, Body, CurrentUser, ForbiddenError, Get, HttpError, InternalServerError, JsonController, NotFoundError, OnNull, OnUndefined, Param, Post, Put, Req } from 'routing-controllers';
+import { BadRequestError, Body, CurrentUser, Delete, ForbiddenError, Get, HttpError, InternalServerError, JsonController, NotFoundError, OnNull, OnUndefined, Param, Post, Put, Req } from 'routing-controllers';
 import User, { IUser } from "../../models/user";
 import Cup from '../../models/cup';
 import getStoragePath from '../../utils/storage-path';
 import CupManager from '../../cup/cup-manager';
 import { Request } from 'express';
+import Config from '../../config';
 
 class AdjustSeedingRequest {
     @IsUUID('4')
@@ -20,6 +21,10 @@ class AddOrRemoveMapRequest {
     name: string;
 };
 
+class RemoveCupRequest {
+    @IsNotEmpty()
+    id: string;
+}
 class JoinOrLeaveCupRequest {
     @IsNotEmpty()
     id: string;
@@ -28,6 +33,11 @@ class JoinOrLeaveCupRequest {
 class StartCupRequest {
     @IsNotEmpty()
     id: string;
+}
+
+class CreateCupRequest {
+    @IsNotEmpty()
+    name: string;
 }
 
 
@@ -218,6 +228,44 @@ export default class CupController {
         await cm.start();
 
         return null;
+    }
+
+    @Post('/cup/create')
+    async createCup(@Body() createCupRequest: CreateCupRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cupName = createCupRequest.name;
+
+        const found = await Cup.findOne({ title: cupName });
+        if (!!found) throw new BadRequestError(`A cup with that name already exists: ${found.title}`);
+
+        const cup = new Cup();
+
+        cup.title = cupName;
+        cup.challengers = [];
+        cup.maps = [...Config.default_map_pool];
+        cup.type = Config.default_type;
+
+        await cup.save();
+
+        return cup.toObject();
+    }
+
+    @Delete('/cup/remove')
+    async removeCup(@Body() removeCupRequest: RemoveCupRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const _id = removeCupRequest.id;
+        const cup = await Cup.findOne({ _id });
+
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
+        await Cup.deleteOne({ _id });
+
+        return cup.toObject();
     }
 
 }
