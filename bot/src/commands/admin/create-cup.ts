@@ -28,6 +28,7 @@ export default class CreateCupCommand extends Command {
         cup.challengers = [];
         cup.maps = [...Config.default_map_pool];
         cup.type = Config.default_type;
+        cup.boStrategy = Config.default_bo_strategy;
 
         await cup.save();
 

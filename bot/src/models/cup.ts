@@ -3,6 +3,13 @@ import uuid from '../utils/uuid';
 import { IMatch } from './match';
 import { IUser } from './user';
 
+export enum CupBoStrategy {
+    OnlyBo1 = '1',
+    MixedBo1Bo3 = '2',
+    OnlyBo3 = '3',
+    // ...
+}
+
 export interface ICup {
     _id: string;
     type: string;
@@ -13,8 +20,8 @@ export interface ICup {
     over: boolean;
     started: boolean;
     automaticSeeding: boolean;
+    boStrategy: CupBoStrategy | string;
     data: any;
-
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -33,6 +40,11 @@ const schema = new Schema<ICup>({
     started: { type: Boolean, default: false },
     automaticSeeding: { type: Boolean, default: false },
     data: { type: Object, default: {} },
+    boStrategy: {
+        type: String,
+        default: CupBoStrategy.MixedBo1Bo3,
+        enum: Object.values(CupBoStrategy)
+    }
 });
 
 export default model<ICup>('Cup', new Schema(schema, { timestamps: true }));
