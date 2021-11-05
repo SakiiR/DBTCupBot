@@ -88,6 +88,8 @@ function formatClientStats(client) {
 }
 
 function compareStats(stats1, stats2) {
+  if (!stats1 || !stats2) return 0;
+
   return stats1.s && !stats2.s
     ? -1
     : !stats1.s && stats2.s
