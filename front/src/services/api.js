@@ -297,4 +297,44 @@ export default class APIService {
 
     return json;
   }
+
+  static async setBoStrategy(cupId, strategy) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/bo-strategy?${ts}`;
+    const method = "PUT";
+    const body = JSON.stringify({
+      strategy,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async setAutomaticSeeding(cupId, automaticSeeding) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/automatic-seeding?${ts}`;
+    const method = "PUT";
+    const body = JSON.stringify({
+      automaticSeeding,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
 }

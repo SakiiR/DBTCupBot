@@ -5,7 +5,29 @@
         <q-toolbar class="bg-primary text-white q-my-md shadow-2">
           <span>{{ cup.cup.title }}</span>
           <q-space />
+
+          <q-toggle
+            color="positive"
+            @update:model-value="onAutomaticSeedingChange()"
+            :disable="cupLocked || !admin"
+            v-model="cup.cup.automaticSeeding"
+          >
+            <q-tooltip>Automatic seeding</q-tooltip>
+          </q-toggle>
+
           <q-separator vertical inset />
+
+          <q-select
+            :disable="cupLocked || !admin"
+            label="Cup BO strategy"
+            :options="boStrategyOptions"
+            v-model="cup.cup.boStrategy"
+            style="width: 200px"
+            @update:model-value="onBoStrategyChange()"
+          />
+
+          <q-separator vertical inset />
+
           <q-btn
             v-if="authenticated && !cupJoined"
             flat
@@ -70,6 +92,7 @@ import CupBracket from "src/components/cup/Bracket.vue";
 import CupMatches from "src/components/cup/Matches.vue";
 import { mapState } from "vuex";
 import wrapLoading from "src/utils/loading";
+import BoStrategy from "src/utils/bo-strategy";
 
 export default {
   name: "Cup",
@@ -80,8 +103,16 @@ export default {
     CupMatches,
   },
   data() {
+    const boStrategyOptions = [
+      ...Object.keys(BoStrategy).map((k) => ({
+        label: BoStrategy[k].label,
+        value: BoStrategy[k].value,
+      })),
+    ];
+
     return {
       cup: null,
+      boStrategyOptions,
     };
   },
   mounted() {
@@ -109,6 +140,25 @@ export default {
     },
   },
   methods: {
+    async onAutomaticSeedingChange() {
+      const automaticSeeding = !this.cup.cup.automaticSeeding;
+
+      wrapLoading(this.$q, async () => {
+        await APIService.setAutomaticSeeding(
+          this.$route.params.id,
+          automaticSeeding
+        );
+        await this.getCup();
+      });
+    },
+    async onBoStrategyChange() {
+      const strategy = this.cup.cup.boStrategy.value;
+
+      wrapLoading(this.$q, async () => {
+        await APIService.setBoStrategy(this.$route.params.id, strategy);
+        await this.getCup();
+      });
+    },
     async getCup() {
       wrapLoading(this.$q, async () => {
         const cup = await APIService.cup(this.$route.params.id);

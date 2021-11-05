@@ -1,7 +1,7 @@
 import signale from "signale";
 import CupManager from "../cup/cup-manager";
 import User, { IUser } from "../models/user";
-import Cup, { ICup } from "../models/cup";
+import Cup, { CupBoStrategy, ICup } from "../models/cup";
 import Config from "../config";
 
 export default class DatabaseFixtures {
@@ -85,14 +85,19 @@ export default class DatabaseFixtures {
             userIds.push(await this.createUserAndGetId(user));
         }
 
-        const cup = new Cup({
+        const data = {
             challengers: userIds,
             title: "Dev Test Cup",
             over: false,
             started: false,
             type: Config.default_type,
+            boStrategy: Config.default_bo_strategy,
             maps: [...Config.default_map_pool]
-        })
+        };
+
+        signale.debug({ data })
+
+        const cup = new Cup(data)
 
 
 

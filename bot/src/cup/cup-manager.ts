@@ -2,44 +2,33 @@ import { BracketsManager, JsonDatabase } from 'brackets-manager';
 import {
     Match as BracketMatch,
     Seeding,
-    Status as MatchStatus,
+    Status as MatchStatus
 } from 'brackets-model';
 import {
-    CategoryChannel,
-    Channel,
-    ChannelData,
-    Client,
-    GuildChannel,
-    Interaction,
-    Message,
+    Client, Message,
     MessageActionRow,
-    MessageSelectMenu,
-    NewsChannel,
-    Permissions,
-    SelectMenuInteraction,
-    StageChannel,
-    StoreChannel,
-    TextChannel,
-    VoiceChannel,
+    MessageSelectMenu, Permissions,
+    SelectMenuInteraction, TextChannel
 } from 'discord.js';
+import fs from 'fs/promises';
 import signale from 'signale';
 import Config from '../config';
-import Cup, { ICup } from '../models/cup';
+import Cup, { CupBoStrategy, ICup } from '../models/cup';
+import Match from '../models/match';
 import User, { IUser } from '../models/user';
 import DiaboticalService from '../services/diabotical';
+import BoStrategy from '../utils/bo-strategy';
 import getDiscordTag from '../utils/discord-tag';
+import { isThatAWin } from '../utils/is-that-a-win';
 import getMatchChannelWelcomeMessage from '../utils/match-channel-welcome';
+import MutexSingleton from "../utils/mutex-singleton";
 import Serializer from '../utils/serialize';
+import getStoragePath from '../utils/storage-path';
 import BO1 from './pick-ban/bo1';
 import BO3 from './pick-ban/bo3';
 import { PickBan, Player } from './pick-ban/pick-ban';
 
-import Match from '../models/match';
-import getStoragePath from '../utils/storage-path';
-import fs from 'fs/promises';
-import { isThatAWin } from '../utils/is-that-a-win';
 
-import MutexSingleton from "../utils/mutex-singleton";
 
 interface RegisterChannelResponse {
     channel?: TextChannel | null;
@@ -281,14 +270,11 @@ export default class CupManager {
         const highSeedPlayer = op1Index < op2Index ? op1User : op2User;
         const lowSeedPlayer = op1Index > op2Index ? op1User : op2User;
 
-        const finalRoundId = rounds.length - 1;
 
         // Computes Best Of
         // is looser bracket
-        match.child_count = 3;
-        if (match.group_id === 1) {
-            if (match.round_id !== finalRoundId) match.child_count = 1;
-        }
+        signale.debug({ cup: this.cup });
+        match = BoStrategy.apply(this.cup.boStrategy as CupBoStrategy, match, rounds);
 
         signale.debug(
             `Creating channel for match ${match.id} (${highSeedPlayer.epicName} vs ${lowSeedPlayer.epicName})`

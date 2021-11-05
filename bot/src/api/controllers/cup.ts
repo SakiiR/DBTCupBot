@@ -1,12 +1,12 @@
 import { IsIn, IsNotEmpty, IsUUID } from 'class-validator';
-import fs from 'fs/promises';
-import { BadRequestError, Body, CurrentUser, Delete, ForbiddenError, Get, HttpError, InternalServerError, JsonController, NotFoundError, OnNull, OnUndefined, Param, Post, Put, Req } from 'routing-controllers';
-import User, { IUser } from "../../models/user";
-import Cup from '../../models/cup';
-import getStoragePath from '../../utils/storage-path';
-import CupManager from '../../cup/cup-manager';
 import { Request } from 'express';
+import fs from 'fs/promises';
+import { BadRequestError, Body, CurrentUser, Delete, ForbiddenError, Get, HttpError, InternalServerError, JsonController, NotFoundError, OnNull, Param, Post, Put, Req } from 'routing-controllers';
 import Config from '../../config';
+import CupManager from '../../cup/cup-manager';
+import Cup, { CupBoStrategy } from '../../models/cup';
+import User, { IUser } from "../../models/user";
+import getStoragePath from '../../utils/storage-path';
 
 class AdjustSeedingRequest {
     @IsUUID('4')
@@ -38,6 +38,16 @@ class StartCupRequest {
 class CreateCupRequest {
     @IsNotEmpty()
     name: string;
+}
+
+class SetBoStrategyRequest {
+    @IsNotEmpty()
+    @IsIn(Object.values(CupBoStrategy))
+    strategy: string;
+}
+
+class SetAutomaticSeedingRequest {
+    automaticSeeding: boolean;
 }
 
 
@@ -245,6 +255,7 @@ export default class CupController {
         cup.challengers = [];
         cup.maps = [...Config.default_map_pool];
         cup.type = Config.default_type;
+        cup.boStrategy = Config.default_bo_strategy;
 
         await cup.save();
 
@@ -268,4 +279,37 @@ export default class CupController {
         return cup.toObject();
     }
 
+    @Put('/cup/:id/bo-strategy')
+    async setBoStrategy(@Param('id') _id: string, @Body() setBoStrategyRequest: SetBoStrategyRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id });
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
+        const boStrategy = setBoStrategyRequest.strategy;
+
+        const ret = await Cup.updateOne({ _id }, { $set: { boStrategy } });
+
+        return boStrategy;
+    }
+
+    @Put('/cup/:id/automatic-seeding')
+    async setAutomaticSeeding(@Param('id') _id: string, @Body() setAutomaticSeedingRequest: SetAutomaticSeedingRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id });
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
+        const { automaticSeeding } = setAutomaticSeedingRequest;
+
+        const ret = await Cup.updateOne({ _id }, { $set: { automaticSeeding } });
+
+        return automaticSeeding;
+    }
 }

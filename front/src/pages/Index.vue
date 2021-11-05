@@ -1,6 +1,6 @@
 <template>
   <q-page class="flex flex-center">
-    <diabotical-api-match id="toto"></diabotical-api-match>
+    <span>Invalid page</span>
   </q-page>
 </template>
 

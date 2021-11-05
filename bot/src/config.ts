@@ -1,3 +1,5 @@
+import { CupBoStrategy } from "./models/cup";
+
 export default class Config {
     // Discord
     static discord_token = process.env.DISCORD_TOKEN || 'default-discord-token';
@@ -14,6 +16,7 @@ export default class Config {
     // Diabotical
     static default_map_pool = ['raya', 'bioplant', 'pavillon x', 'restless', 'skybreak', 'sanctum', 'amberfall'];
     static default_type = "double_elimination";
+    static default_bo_strategy = CupBoStrategy.MixedBo1Bo3;
 
     static cup_storage = process.env.CUP_STORAGE || "/tmp"
 
