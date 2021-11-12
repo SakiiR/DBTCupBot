@@ -23,7 +23,7 @@ export default class DatabaseFixtures {
                 "discordId": "208187617055997952",
                 "discordTag": "Chamo#1049",
                 "admin": true,
-                "rating": 22,
+                "rating": { "position": 13, "tier": 40 },
                 "epicId": "1cf88f28703c4e5582cc2d92aaf92d17",
                 "epicName": "Ξ Chamo"
             }),
@@ -31,7 +31,7 @@ export default class DatabaseFixtures {
                 "discordId": "119758326706733056",
                 "discordTag": "SakiiR#3822",
                 "admin": true,
-                "rating": 37,
+                "rating": { "position": 25, "tier": 40 },
                 "epicId": "20ee8612d4c2461195fdf891fd4a3f10",
                 "epicName": "SakiiR au Beurre"
             }),
@@ -39,7 +39,7 @@ export default class DatabaseFixtures {
                 "discordId": "119786129011638274",
                 "discordTag": "Nykho#1337",
                 "admin": false,
-                "rating": 11,
+                "rating": { "position": 21, "tier": 40 },
                 "epicId": "4778a0c993a7416e8635526397aaf85e",
                 "epicName": "Nykho"
             }),
@@ -47,7 +47,7 @@ export default class DatabaseFixtures {
                 "discordId": "324218231298588684",
                 "discordTag": "Code187#3370",
                 "admin": false,
-                "rating": 0,
+                "rating": { "position": 0, "tier": 0 },
                 "epicId": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
                 "epicName": "C0DE-187"
             }),
@@ -55,7 +55,7 @@ export default class DatabaseFixtures {
                 "discordId": "179670335757484042",
                 "discordTag": "guzz#0687",
                 "admin": false,
-                "rating": 0,
+                "rating": { "position": 0, "tier": 27 },
                 "epicId": "16b9f794b2b6433fad7a4f99a663f4c5",
                 "epicName": "ESAツguzz"
             }),
@@ -63,7 +63,7 @@ export default class DatabaseFixtures {
                 "discordTag": "goulox#6374",
                 "discordId": "107223123337728000",
                 "admin": false,
-                "rating": 99,
+                "rating": { "position": 0, "tier": 35 },
                 "epicId": "eb78fb7ada1e4f14affb738aa5a56397",
                 "epicName": "goulox"
             }),
@@ -71,7 +71,7 @@ export default class DatabaseFixtures {
                 "discordTag": "FragStealer#6234",
                 "discordId": "98729729460293632",
                 "admin": false,
-                "rating": 49,
+                "rating": { "position": 36, "tier": 40 },
                 "epicId": "6a230c9d0165496da81d6883347c9511",
                 "epicName": "FragStealzor"
             })

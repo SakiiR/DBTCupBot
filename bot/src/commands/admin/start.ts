@@ -42,7 +42,7 @@ export default class StartCupCommand extends Command {
         for (const c of challengers) {
             const user = await User.findOne({ discordTag: c.discordTag });
 
-            user.rating = await DiaboticalService.getUserRating(user.epicId) || 0;
+            user.rating = await DiaboticalService.getUserRating(user.epicId);
 
             await user.save();
         }

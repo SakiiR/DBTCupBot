@@ -25,7 +25,7 @@ export default class LinkEpicCommand extends Command {
 
         user.epicId = epicId;
         user.epicName = epicUser.name;
-        user.rating = (await DiaboticalService.getUserRating(epicId) || 0);
+        user.rating = await DiaboticalService.getUserRating(epicId);
 
 
         await user.save();

@@ -108,6 +108,12 @@ export interface DiaboticalMatch {
     teams: any[];
 }
 
+export interface Rating {
+    position: number;
+    tier: number;
+}
+
+
 export default class DiaboticalService {
     static async getUser(userId: string): Promise<DiaboticalUser | null> {
         const response = await axios.get(`${BASE}/users/${userId}`);
@@ -120,17 +126,17 @@ export default class DiaboticalService {
     static async getUserRating(
         userId: string,
         mode: string = 'md_duel'
-    ): Promise<number> {
+    ): Promise<Rating> {
         const response = await axios.get(`${BASE}/users/${userId}/rating`);
         const { ratings } = response.data;
 
         for (const rating of ratings) {
             if (rating.mode_key === mode) {
-                return rating.rank_position;
+                return { position: rating.rank_position || 0, tier: rating.rank_tier || 0 };
             }
         }
 
-        return 0;
+        return { position: 0, tier: 0 };
     }
 
     static async getMatch(

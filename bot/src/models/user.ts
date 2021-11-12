@@ -1,4 +1,5 @@
 import { model, Schema } from 'mongoose';
+import { Rating } from '../services/diabotical';
 import uuid from '../utils/uuid';
 
 export interface IUser {
@@ -8,7 +9,7 @@ export interface IUser {
     discordTag: string;
     discordId: string;
     admin: boolean;
-    rating: number;
+    rating: Rating;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -23,7 +24,10 @@ const schema = new Schema<IUser>({
     discordTag: { type: String, required: false, unique: true },
     discordId: { type: String, required: false, unique: true },
     admin: { type: Boolean, required: true, unique: false },
-    rating: { type: Number, required: true, unique: false },
+    rating: {
+        position: { type: Number },
+        tier: { type: Number },
+    },
 });
 
 export default model<IUser>('User', new Schema(schema, { timestamps: true }));

@@ -27,6 +27,7 @@ import getStoragePath from '../utils/storage-path';
 import BO1 from './pick-ban/bo1';
 import BO3 from './pick-ban/bo3';
 import { PickBan, Player } from './pick-ban/pick-ban';
+import automaticSeeds from './seeding';
 
 
 
@@ -312,7 +313,7 @@ export default class CupManager {
 
         const orderedUsers = users
             .map((u) => u.toObject())
-            .sort((a, b) => b.rating - a.rating)
+            .sort((a, b) => b.rating.position - a.rating.position)
             .map((u) => u.epicName);
 
         const op1Index = orderedUsers.indexOf(op1EpicName);
@@ -653,14 +654,13 @@ export default class CupManager {
         signale.debug("Mutex: done");
     }
 
+
     private async getSeeding(): Promise<Seeding> {
         let sortedByRankPos = [...this.cup.challengers];
 
         if (this.cup.automaticSeeding) {
             signale.debug("Automatic seeding ...");
-            sortedByRankPos = sortedByRankPos.sort(
-                (a: IUser, b: IUser) => b.rating - b.rating
-            );
+            return automaticSeeds(sortedByRankPos as IUser[]);
         }
 
         const powerOfTwo = (num: number) => Math.log2(num) % 1 === 0;
