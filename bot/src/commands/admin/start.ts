@@ -57,7 +57,7 @@ export default class StartCupCommand extends Command {
 
         await interaction.reply({ content });
 
-        const cm = new CupManager(this.client, cup);
+        const cm = await this.getCupManager(cup._id);
 
         await cm.start();
 

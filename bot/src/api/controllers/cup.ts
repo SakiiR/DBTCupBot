@@ -6,6 +6,8 @@ import Config from '../../config';
 import CupManager from '../../cup/cup-manager';
 import Cup, { CupBoStrategy } from '../../models/cup';
 import User, { IUser } from "../../models/user";
+import cleanChannels from '../../utils/clean-channels';
+import getDiscordTag from '../../utils/discord-tag';
 import getStoragePath from '../../utils/storage-path';
 
 class AdjustSeedingRequest {
@@ -35,9 +37,18 @@ class StartCupRequest {
     id: string;
 }
 
+class CancelCupRequest {
+    @IsNotEmpty()
+    id: string;
+}
+
 class CreateCupRequest {
     @IsNotEmpty()
     name: string;
+}
+class KickPlayerRequest {
+    @IsNotEmpty()
+    id: string;
 }
 
 class SetBoStrategyRequest {
@@ -236,6 +247,8 @@ export default class CupController {
         const cm = new CupManager(request.discordClient.getClient(), cup);
 
         await cm.start();
+        const discordTag = getDiscordTag(user.discordId);
+        await cm.announceMessage(`The cup **${cup.title}** have been started by ${discordTag}`);
 
         return null;
     }
@@ -279,6 +292,36 @@ export default class CupController {
         return cup.toObject();
     }
 
+    @Post('/cup/cancel')
+    async cancel(@Body() cancelCupRequest: CancelCupRequest, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const _id = cancelCupRequest.id;
+        const cup = await Cup.findOne({ _id });
+
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        // clean channels
+        const client = request.discordClient.getClient();
+
+        await cleanChannels(client);
+
+        // reset state
+        await Cup.updateOne({ _id }, {
+            $set: {
+                started: false,
+                over: false
+            }
+        });
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+        await cm.announceMessage(`The cup **${cup.title}** have been cancelled by ${discordTag}`);
+
+        return cup.toObject();
+    }
+
     @Put('/cup/:id/bo-strategy')
     async setBoStrategy(@Param('id') _id: string, @Body() setBoStrategyRequest: SetBoStrategyRequest, @CurrentUser() user?: IUser) {
         if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
@@ -308,8 +351,27 @@ export default class CupController {
 
         const { automaticSeeding } = setAutomaticSeedingRequest;
 
-        const ret = await Cup.updateOne({ _id }, { $set: { automaticSeeding } });
+        await Cup.updateOne({ _id }, { $set: { automaticSeeding } });
 
         return automaticSeeding;
+    }
+
+    @Put('/cup/:id/kick')
+    async kickPlayer(@Param('id') _id: string, @Body() kickPlayerRequest: KickPlayerRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id });
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
+        const challengers = cup.challengers as string[];
+
+        const newChallengers = challengers.filter(i => i !== kickPlayerRequest.id);
+
+        await Cup.updateOne({ _id }, { $set: { challengers: [...newChallengers] } });
+
+        return newChallengers;
     }
 }

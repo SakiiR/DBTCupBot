@@ -39,6 +39,16 @@
             icon="arrow_downward"
           />
 
+          <q-btn
+            v-if="isAdmin"
+            @click="kickPlayer(props.row)"
+            flat
+            dense
+            round
+            icon="person_remove"
+            ><q-tooltip>Kick player</q-tooltip></q-btn
+          >
+
           <router-link :to="`/user/${props.row._id}`">
             <q-btn flat round dense icon="double_arrow" class="q-mr-xs">
               <q-tooltip> User {{ props.row.discordTag }} </q-tooltip>
@@ -74,6 +84,28 @@ export default {
     },
   },
   methods: {
+    async kickPlayer(user) {
+      if (this.cupLocked) {
+        return this.$q.notify({
+          type: "negative",
+          message: "The cup cannot be modified",
+        });
+      }
+
+      this.$q
+        .dialog({
+          title: "Confirm",
+          message: `Are you sure you want to kick '${user.discordTag}' from the cup ?`,
+          cancel: true,
+          persistent: false,
+        })
+        .onOk(() => {
+          wrapLoading(this.$q, async () => {
+            await APIService.kickPlayer(this.cup.cup._id, user._id);
+            this.$emit("update");
+          });
+        });
+    },
     async adjustSeeding(user, direction) {
       if (this.cupLocked) {
         return this.$q.notify({
@@ -84,9 +116,8 @@ export default {
 
       wrapLoading(this.$q, async () => {
         await APIService.adjustSeeding(this.cup.cup._id, user, direction);
+        this.$emit("update");
       });
-
-      this.$emit("update");
     },
   },
   data() {

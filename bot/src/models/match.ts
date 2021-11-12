@@ -10,7 +10,6 @@ export interface IMatch {
     maps: any[] | DiaboticalMatch[];
     highSeedPlayer: IUser | string;
     lowSeedPlayer: IUser | string;
-
     createdAt?: Date;
     updatedAt?: Date;
 }

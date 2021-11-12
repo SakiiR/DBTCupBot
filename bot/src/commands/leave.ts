@@ -39,11 +39,9 @@ export default class LeaveCommand extends Command {
             { $pull: { challengers: currentUser._id } }
         );
 
-        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
-        const channels = await guild.channels.fetch();
-        const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+        const cm = await this.getCupManager(cup._id);
 
-        await announcementChannel.send(`**${currentUser.epicName}** left the cup **${cup.title}**`);
+        await cm.announceMessage(`**${currentUser.epicName}** left the cup **${cup.title}**`);
 
         return await interaction.reply(
             { content: `Successfully left  **${cup.title}**`, ephemeral: true }

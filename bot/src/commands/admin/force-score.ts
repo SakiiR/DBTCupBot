@@ -31,7 +31,7 @@ export default class ForceScoreCommand extends Command {
 
         const malformedScoreError = `Invalid score provided: ${scoreString}`;
 
-        if (scoreTokens.length !== 2) return await interaction.reply({ content: malformedScoreError, ephemeral: true });
+        if (scoreTokens.length !== 2) return await interaction.editReply({ content: malformedScoreError });
 
         let [leftScore, rightScore] = scoreTokens.map(c => parseInt(c));
 
@@ -45,9 +45,13 @@ export default class ForceScoreCommand extends Command {
             return await interaction.editReply(`The channel topic might be invalid, please contact admins`);
 
 
-        const cupManager = new CupManager(this.client, cup);
+        const cupManager = await this.getCupManager(cup._id);
 
-        const res = await cupManager.forceMatchScore(matchChannelTopic.match, leftScore, rightScore);
+        if (leftScore === rightScore)
+            return await interaction.editReply('Invalid score provided');
+
+
+        const res = await cupManager.forceMatchScore(matchChannelTopic, leftScore, rightScore);
         if (!res)
             return await interaction.editReply('Cannot force match score, contact admin');
 

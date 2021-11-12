@@ -1,8 +1,7 @@
 import signale from "signale";
-import CupManager from "../cup/cup-manager";
-import User, { IUser } from "../models/user";
-import Cup, { CupBoStrategy, ICup } from "../models/cup";
 import Config from "../config";
+import Cup from "../models/cup";
+import User from "../models/user";
 
 export default class DatabaseFixtures {
 

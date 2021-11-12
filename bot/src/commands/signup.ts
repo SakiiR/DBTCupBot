@@ -46,11 +46,10 @@ export default class SignupCommand extends Command {
             { $push: { challengers: currentUser._id } }
         );
 
-        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
-        const channels = await guild.channels.fetch();
-        const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+        const cm = await this.getCupManager(cup._id);
 
-        await announcementChannel.send(`**${currentUser.epicName}** signed up for the cup **${cup.title}**`);
+
+        await cm.announceMessage(`**${currentUser.epicName}** signed up for the cup **${cup.title}**`);
 
         return await interaction.reply(
             { content: `Successfully signed up for **${cup.title}**`, ephemeral: true }

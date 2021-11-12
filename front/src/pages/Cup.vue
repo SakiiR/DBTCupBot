@@ -52,6 +52,14 @@
             label="Start"
             @click="startCup()"
           />
+
+          <q-btn
+            v-if="admin && cupLocked"
+            flag
+            color="negative"
+            label="Cancel"
+            @click="cancelCup()"
+          />
         </q-toolbar>
       </div>
 
@@ -93,6 +101,7 @@ import CupMatches from "src/components/cup/Matches.vue";
 import { mapState } from "vuex";
 import wrapLoading from "src/utils/loading";
 import BoStrategy from "src/utils/bo-strategy";
+import sleep from "src/utils/sleep";
 
 export default {
   name: "Cup",
@@ -176,6 +185,24 @@ export default {
         .onOk(async () => {
           wrapLoading(this.$q, async () => {
             await APIService.startCup(this.cup.cup._id);
+            await sleep(1000);
+            location.reload();
+          });
+        });
+    },
+
+    async cancelCup() {
+      this.$q
+        .dialog({
+          title: "Confirm",
+          message: "Are you sure you want to cancel this cup ?",
+          cancel: true,
+          persistent: false,
+        })
+        .onOk(async () => {
+          wrapLoading(this.$q, async () => {
+            await APIService.cancelCup(this.cup.cup._id);
+            await sleep(1000);
             location.reload();
           });
         });

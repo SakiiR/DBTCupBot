@@ -3,6 +3,12 @@ import { CommandInteraction, SelectMenuInteraction } from "discord.js";
 import Command from './command';
 
 
+const SUPER_ADMINS = [
+    "SakiiR#3822",
+    "Chamo#1049",
+    "Code187#3370",
+].map(t => t.toLowerCase());
+
 export default class BeerCommand extends Command {
     _name = 'beer';
     _description = 'Gives out a beer';
@@ -13,13 +19,7 @@ export default class BeerCommand extends Command {
 
         const tag = interaction.user.tag.toLowerCase();
 
-        const allowList = [
-            "SakiiR#3822",
-            "Chamo#1049",
-            "Code187#3370",
-        ].map(t => t.toLowerCase());
-
-        if (allowList.includes(tag)) {
+        if (SUPER_ADMINS.includes(tag)) {
             return await interaction.reply(':beer:');
         }
 

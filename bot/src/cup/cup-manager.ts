@@ -39,6 +39,8 @@ interface RegisterChannelResponse {
 export interface MatchChannelTopic {
     match?: BracketMatch;
     cupId?: string;
+    highSeedPlayerId?: string;
+    lowSeedPlayerId?: string;
 }
 
 export default class CupManager {
@@ -61,7 +63,6 @@ export default class CupManager {
     private async archiveCup(): Promise<void> {
         const storagePath = this.getStoragePath();
 
-
         const data = await fs.readFile(storagePath, "utf-8");
         await fs.writeFile(storagePath.replace('.json', '.json.bak'), data);
 
@@ -81,27 +82,69 @@ export default class CupManager {
         return await User.findOne({ epicName });
     }
 
-    public async forceMatchScore(match: BracketMatch, leftScore: number, rightScore: number): Promise<boolean> {
+    public async announceMessage(message: string): Promise<void> {
+        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
+        const channels = await guild.channels.fetch();
+        const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+
+        if (!announcementChannel) {
+            const candidates = channels.map((c) => c.name).join(", ");
+            signale.warn("The announcement channel could not be found !");
+            signale.warn(`Here is a list of the channel you can use: ${candidates}`);
+            return;
+        }
+
+        await announcementChannel.send(message);
+
+    }
+
+    public async announceMatchResult(whoWin: IUser, whoLoose: IUser, winnerScore: number, looserScore: number): Promise<void> {
+        const winnerDiscordTag = getDiscordTag(whoWin.discordId);
+        const looserDiscordTag = getDiscordTag(whoLoose.discordId);
+
+        let msg = '';
+
+        // msg += "New Match Result: \n"
+        msg += `${winnerDiscordTag} ${winnerScore} - ${looserScore} ${looserDiscordTag}\n`;
+        // msg += `Congratz ${winnerDiscordTag}`;
+
+        await this.announceMessage(msg);
+    }
+
+    public async forceMatchScore(matchTopic: MatchChannelTopic, leftScore: number, rightScore: number): Promise<boolean> {
         const manager = this.getManager();
+        const { match } = matchTopic;
+
+        const highSeedUser = await User.findOne({ _id: matchTopic.highSeedPlayerId });
+        const lowSeedUser = await User.findOne({ _id: matchTopic.lowSeedPlayerId });
+
+        const op1User = await this.getUserByParticipantId(match.opponent1.id);
+        const op2User = await this.getUserByParticipantId(match.opponent2.id);
+
+        const winner = leftScore > rightScore ? highSeedUser : lowSeedUser;
+        const looser = leftScore > rightScore ? lowSeedUser : highSeedUser;
+        const winnerScore = leftScore > rightScore ? leftScore : rightScore;
+        const looserScore = leftScore > rightScore ? rightScore : leftScore;
 
         const matchUpdate = {
             id: match.id,
             status: MatchStatus.Completed,
             opponent1: {
                 id: match.opponent1.id,
-                score: leftScore,
-                result: leftScore > rightScore ? 'win' : 'loss',
+                score: op1User._id === winner._id ? winnerScore : looserScore,
+                result: op1User._id === winner._id ? 'win' : 'loss',
             },
             opponent2: {
                 id: match.opponent2.id,
-                score: rightScore,
-                result: leftScore < rightScore ? 'win' : 'loss',
+                score: op2User._id === winner._id ? winnerScore : looserScore,
+                result: op2User._id === winner._id ? 'win' : 'loss',
             },
         };
 
+
         await manager.update.match({ ...(matchUpdate as BracketMatch) });
 
-        signale.debug({ msg: "Updating match", matchUpdate });
+        await this.announceMatchResult(winner, looser, winnerScore, looserScore);
 
         await this.createChannels();
 
@@ -197,6 +240,7 @@ export default class CupManager {
         m.highSeedPlayer = op1User;
         m.lowSeedPlayer = op2User;
         await m.save();
+
         const cup = await Cup.findOne({ _id: this.cup._id });
         cup.matches = [...cup.matches, m._id];
         await cup.save();
@@ -215,6 +259,13 @@ export default class CupManager {
                 result: op1Score < op2Score ? 'win' : 'loss',
             },
         };
+
+        const winner = op1Score > op2Score ? op1User : op2User;
+        const looser = op1Score > op2Score ? op2User : op1User;
+        const winnerScore = op1Score > op2Score ? op1Score : op2Score;
+        const looserScore = op1Score > op2Score ? op2Score : op1Score;
+
+        await this.announceMatchResult(winner, looser, winnerScore, looserScore);
 
         await manager.update.match({ ...(matchUpdate as BracketMatch) });
 
@@ -300,6 +351,8 @@ export default class CupManager {
         const topic = Serializer.serialize<MatchChannelTopic>({
             match,
             cupId: this.cup._id,
+            highSeedPlayerId: highSeedPlayer._id,
+            lowSeedPlayerId: lowSeedPlayer._id,
         });
 
 
@@ -352,10 +405,11 @@ export default class CupManager {
 
         if (!channel) return;
 
+        const mapsCpy = [...this.cup.maps];
         let bo =
             match.child_count === 1
-                ? new BO1([...this.cup.maps]) // Actually do a copy of this because we want to compare in the getMapListMessage function, And we don't want the BO class to modify it
-                : new BO3([...this.cup.maps]);
+                ? new BO1(mapsCpy) // Actually do a copy of this because we want to compare in the getMapListMessage function, And we don't want the BO class to modify it
+                : new BO3(mapsCpy);
 
         const $this = this;
 
@@ -445,9 +499,7 @@ export default class CupManager {
                 }
             }
 
-            if (message.deletable) {
-                await message.delete();
-            }
+            message.deletable && await message.delete();
 
             const [selectedMap] = interaction.values;
 
@@ -490,10 +542,11 @@ export default class CupManager {
                     answer += `Your map is **${maps}**\n`;
                 else
                     answer += `Your maps are **${maps}**\n`;
+
                 answer += `HF GL !\n`;
                 answer += `\n`;
 
-                if (mapListMessage.deletable) await mapListMessage.delete();
+                mapListMessage.deletable && await mapListMessage.delete();
             } else {
                 await mapListMessage.edit(
                     getMapListMessage(bo.remainingMaps())
@@ -541,17 +594,12 @@ export default class CupManager {
 
 
             const channels = await guild.channels.fetch();
-            const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+            let msg = ``;
 
+            msg += `And the winner is \`${winner.epicName}\` !`
+            msg += `Congratulation ${getDiscordTag(winner.discordId)}`
 
-
-            if (!announcementChannel) {
-                signale.warn(`Cannot find announcement channel by name ${Config.announcementChannel}`);
-                return;
-            }
-
-            await announcementChannel.send(`And the winner is \`${winner.epicName}\` !`);
-            await announcementChannel.send(`Congratulation ${getDiscordTag(winner.discordId)}`);
+            await this.announceMessage(msg);
 
             await this.setCupOver(true);
         }
