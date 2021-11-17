@@ -36,7 +36,7 @@
 
       <template v-slot:body-cell-rating="props">
         <q-td :props="props">
-          <q-chip>{{ props.value }}</q-chip>
+          <rating :value="props.value" />
         </q-td>
       </template>
 
@@ -57,9 +57,13 @@
 import APIService from "src/services/api";
 import { mapState } from "vuex";
 import wrapLoading from "src/utils/loading";
+import Rating from "src/components/Rating";
 
 export default {
   name: "Users",
+  components: {
+    Rating,
+  },
   computed: mapState({
     user: (state) => state.general.user,
     authenticated: (state) => !!state.general.user,

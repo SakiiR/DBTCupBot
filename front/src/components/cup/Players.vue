@@ -15,7 +15,7 @@
 
       <template v-slot:body-cell-rating="props">
         <q-td :props="props">
-          <q-chip>{{ props.value }}</q-chip>
+          <rating :value="props.value" />
         </q-td>
       </template>
 
@@ -66,8 +66,10 @@ import { mapState } from "vuex";
 import BoolIcon from "../BoolIcon.vue";
 import wrapLoading from "src/utils/loading";
 
+import Rating from "src/components/Rating";
+
 export default {
-  components: { BoolIcon },
+  components: { BoolIcon, Rating },
   name: "CupPlayers",
   props: {
     cup: Object,
