@@ -7,7 +7,7 @@
 
     <q-chip color="accent">
       <q-tooltip> Tier </q-tooltip>
-      <b>{{ value.tier }}</b>
+      <b>{{ tier }}</b>
     </q-chip>
 
     <q-chip v-if="!!value.tier" color="white">
