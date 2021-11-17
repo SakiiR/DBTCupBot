@@ -93,7 +93,7 @@ export default class CupController {
     }
 
     @Post('/cup/join')
-    async joinCup(@Body() joinCupRequest: JoinOrLeaveCupRequest, @CurrentUser() user?: IUser) {
+    async joinCup(@Body() joinCupRequest: JoinOrLeaveCupRequest, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
         if (!user) throw new ForbiddenError('You are not authorized');
 
         if (!user.epicName || !user.epicId) throw new ForbiddenError('You have to link your epic games account first');
@@ -111,6 +111,11 @@ export default class CupController {
         const found = challengers.find((c: IUser) => c.discordTag === user.discordTag);
         if (!!found) throw new BadRequestError("You already joined this cup");
 
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+
+        await cm.announceMessage(`**${discordTag}** signed up for the cup **${cup.title}**`);
+
 
         const playerList = [...challengers.map((c: IUser) => c._id), user._id];
 
@@ -120,7 +125,7 @@ export default class CupController {
     }
 
     @Post('/cup/leave')
-    async leaveCup(@Body() leaveCupRequest: JoinOrLeaveCupRequest, @CurrentUser() user?: IUser) {
+    async leaveCup(@Body() leaveCupRequest: JoinOrLeaveCupRequest, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
         if (!user) throw new ForbiddenError('You are not authorized');
 
         const cupId = leaveCupRequest.id;
@@ -136,6 +141,11 @@ export default class CupController {
 
         const found = challengers.find((c: IUser) => c.discordTag === user.discordTag);
         if (!found) throw new BadRequestError("You are not part of this cup");
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+
+        await cm.announceMessage(`**${discordTag}** left the cup **${cup.title}**`);
 
 
         const playerList = challengers.filter((c: IUser) => c.discordTag !== user.discordTag).map((c: IUser) => c._id);
