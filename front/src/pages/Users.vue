@@ -40,6 +40,18 @@
         </q-td>
       </template>
 
+      <template v-slot:body-cell-createdAt="props">
+        <q-td :props="props">
+          <date :value="props.value" />
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-updatedAt="props">
+        <q-td :props="props">
+          <date :value="props.value" />
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <router-link :to="`/user/${props.row._id}`">
@@ -58,11 +70,13 @@ import APIService from "src/services/api";
 import { mapState } from "vuex";
 import wrapLoading from "src/utils/loading";
 import Rating from "src/components/Rating";
+import Date from "src/components/Date";
 
 export default {
   name: "Users",
   components: {
     Rating,
+    Date,
   },
   computed: mapState({
     user: (state) => state.general.user,
@@ -119,6 +133,16 @@ export default {
         field: "rating",
         align: "left",
         sortable: true,
+      },
+      {
+        name: "createdAt",
+        label: "Created At",
+        field: "createdAt",
+      },
+      {
+        name: "updatedAt",
+        label: "Updated At",
+        field: "updatedAt",
       },
       {
         name: "actions",

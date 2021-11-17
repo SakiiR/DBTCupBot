@@ -35,6 +35,18 @@
         </q-td>
       </template>
 
+      <template v-slot:body-cell-createdAt="props">
+        <q-td :props="props">
+          <date :value="props.value" />
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-updatedAt="props">
+        <q-td :props="props">
+          <date :value="props.value" />
+        </q-td>
+      </template>
+
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <q-btn
@@ -66,11 +78,13 @@ import APIService from "src/services/api";
 import BoolIcon from "src/components/BoolIcon.vue";
 import wrapLoading from "src/utils/loading";
 import { mapState } from "vuex";
+import Date from "src/components/Date";
 
 export default {
   name: "Cups",
   components: {
     BoolIcon,
+    Date,
   },
   mounted() {
     this.loadCups();
@@ -174,6 +188,16 @@ export default {
         name: "started",
         label: "Started?",
         field: "started",
+      },
+      {
+        name: "createdAt",
+        label: "Created At",
+        field: "createdAt",
+      },
+      {
+        name: "updatedAt",
+        label: "Updated At",
+        field: "updatedAt",
       },
       {
         name: "actions",
