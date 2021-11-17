@@ -22,7 +22,7 @@
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <q-btn
-            v-if="isAdmin"
+            v-if="isAdmin && !cupLocked"
             @click="adjustSeeding(props.row._id, 'up')"
             flat
             dense
@@ -31,7 +31,7 @@
           />
 
           <q-btn
-            v-if="isAdmin"
+            v-if="isAdmin && !cupLocked"
             @click="adjustSeeding(props.row._id, 'down')"
             flat
             dense
@@ -40,7 +40,7 @@
           />
 
           <q-btn
-            v-if="isAdmin"
+            v-if="isAdmin && !cupLocked"
             @click="kickPlayer(props.row)"
             flat
             dense

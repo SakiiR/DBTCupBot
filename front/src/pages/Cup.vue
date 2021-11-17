@@ -21,7 +21,7 @@
             :disable="cupLocked || !admin"
             label="Cup BO strategy"
             :options="boStrategyOptions"
-            v-model="cup.cup.boStrategy"
+            v-model="boStrategy"
             style="width: 200px"
             @update:model-value="onBoStrategyChange()"
           />
@@ -122,6 +122,7 @@ export default {
     return {
       cup: null,
       boStrategyOptions,
+      boStrategy: null,
     };
   },
   mounted() {
@@ -161,7 +162,7 @@ export default {
       });
     },
     async onBoStrategyChange() {
-      const strategy = this.cup.cup.boStrategy.value;
+      const strategy = this.boStrategy.value;
 
       wrapLoading(this.$q, async () => {
         await APIService.setBoStrategy(this.$route.params.id, strategy);
@@ -172,6 +173,9 @@ export default {
       wrapLoading(this.$q, async () => {
         const cup = await APIService.cup(this.$route.params.id);
         this.cup = cup;
+        this.boStrategy = this.boStrategyOptions.find(
+          (b) => b.value === this.cup.cup.boStrategy
+        );
       });
     },
     async startCup() {
