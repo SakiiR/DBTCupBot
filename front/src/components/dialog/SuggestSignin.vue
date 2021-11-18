@@ -2,7 +2,7 @@
   <q-dialog ref="dialogRef" @hide="onDialogHide">
     <q-card class="q-dialog-plugin">
       <q-card-section>
-        <div class="text-h6">Please authenticated</div>
+        <div class="text-h6">Please authenticate</div>
         <div class="text-subtitle2">unlock access to a ton of features</div>
       </q-card-section>
 

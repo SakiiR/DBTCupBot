@@ -8,7 +8,6 @@ import { CupBoStrategy } from '../models/cup';
 
 export default class BoStrategy {
     static apply(strategy: CupBoStrategy, match: Match, rounds: Round[]): Match {
-        signale.debug({ strategy, a: CupBoStrategy.MixedBo1Bo3 });
         const finalRoundId = rounds.length - 1;
 
         // By default, apply at least BO1
