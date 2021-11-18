@@ -1,8 +1,14 @@
 <template>
   <div>
     <q-chip>
-      <q-tooltip>{{ value }}</q-tooltip>
-      {{ humanDate }}
+      <div v-if="!!value">
+        <q-tooltip>{{ value }}</q-tooltip>
+        {{ humanDate }}
+      </div>
+      <div v-if="!!!value">
+        <q-tooltip>{{ unknown }}</q-tooltip>
+        <span>{{ unknown }}</span>
+      </div>
     </q-chip>
   </div>
 </template>
@@ -12,12 +18,17 @@ import moment from "moment";
 
 export default {
   name: "Date",
+  data() {
+    return {
+      unknown: "N/A",
+    };
+  },
   props: {
     value: String,
   },
-
   computed: {
     humanDate() {
+      if (!this.value) return this.unknown;
       return moment(this.value).fromNow();
     },
   },
