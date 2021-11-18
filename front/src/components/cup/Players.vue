@@ -66,6 +66,8 @@ import { mapState } from "vuex";
 import BoolIcon from "../BoolIcon.vue";
 import wrapLoading from "src/utils/loading";
 
+import sortByRating from "src/utils/rating-sort";
+
 import Rating from "src/components/Rating";
 
 export default {
@@ -148,6 +150,7 @@ export default {
         field: "rating",
         align: "left",
         sortable: true,
+        sort: (a, b, rowA, rowB) => sortByRating(a, b),
       },
       {
         name: "actions",

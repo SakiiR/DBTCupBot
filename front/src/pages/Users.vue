@@ -71,6 +71,7 @@ import { mapState } from "vuex";
 import wrapLoading from "src/utils/loading";
 import Rating from "src/components/Rating";
 import Date from "src/components/Date";
+import sortByRating from "src/utils/rating-sort";
 
 export default {
   name: "Users",
@@ -133,6 +134,7 @@ export default {
         field: "rating",
         align: "left",
         sortable: true,
+        sort: (a, b, rowA, rowB) => sortByRating(a, b),
       },
       {
         name: "createdAt",
