@@ -6,14 +6,14 @@
           <span>{{ cup.cup.title }}</span>
           <q-space />
 
-          <q-toggle
+          <q-checkbox
             color="positive"
             @update:model-value="onAutomaticSeedingChange()"
             :disable="cupLocked || !admin"
             v-model="cup.cup.automaticSeeding"
           >
             <q-tooltip>Automatic seeding</q-tooltip>
-          </q-toggle>
+          </q-checkbox>
 
           <q-separator vertical inset />
 

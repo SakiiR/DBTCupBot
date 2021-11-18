@@ -25,7 +25,7 @@
     >
       <template v-slot:body-cell-admin="props">
         <q-td :props="props">
-          <q-toggle
+          <q-checkbox
             v-model="{ v: props.value }.v"
             @click="authenticated && isAdmin && changeAdminess(props.row)"
             :disable="!(authenticated && isAdmin)"
