@@ -63,7 +63,7 @@
 <script>
 import APIService from "src/services/api";
 import { mapState } from "vuex";
-import BoolIcon from "../BoolIcon.vue";
+import BoolIcon from "src/components/BoolIcon.vue";
 import wrapLoading from "src/utils/loading";
 
 import sortByRating from "src/utils/rating-sort";
