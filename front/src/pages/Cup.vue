@@ -4,10 +4,21 @@
       <div class="row">
         <q-toolbar class="bg-primary text-white q-my-md shadow-2">
           <span>{{ cup.cup.title }}</span>
+
           <q-space />
+
+          <q-select
+            label="Cup BO strategy"
+            v-model="boStrategy"
+            style="width: 500px"
+            :disable="cupLocked || !admin"
+            :options="boStrategyOptions"
+            @update:model-value="onBoStrategyChange()"
+          />
 
           <q-checkbox
             color="positive"
+            label="Automatic seeding"
             @update:model-value="onAutomaticSeedingChange()"
             :disable="cupLocked || !admin"
             v-model="cup.cup.automaticSeeding"
@@ -15,22 +26,10 @@
             <q-tooltip>Automatic seeding</q-tooltip>
           </q-checkbox>
 
-          <q-separator vertical inset />
-
-          <q-select
-            :disable="cupLocked || !admin"
-            label="Cup BO strategy"
-            :options="boStrategyOptions"
-            v-model="boStrategy"
-            style="width: 200px"
-            @update:model-value="onBoStrategyChange()"
-          />
-
-          <q-separator vertical inset />
-
           <q-btn
             v-if="authenticated && !cupJoined"
             flat
+            stretch
             color="positive"
             label="Join"
             @click="joinCup()"
@@ -38,17 +37,17 @@
 
           <q-btn
             v-if="authenticated && cupJoined"
-            flag
+            flat
+            stretch
             color="negative"
             label="Leave"
             @click="leaveCup()"
           />
 
-          <q-separator vertical inset size="3px" />
-
           <q-btn
             v-if="admin"
-            flag
+            flat
+            stretch
             color="accent"
             label="Preview Seeding"
             @click="previewSeeding()"
@@ -56,7 +55,8 @@
 
           <q-btn
             v-if="admin && !cupLocked"
-            flag
+            flat
+            stretch
             color="positive"
             label="Start"
             @click="startCup()"
@@ -64,7 +64,8 @@
 
           <q-btn
             v-if="admin && cupLocked"
-            flag
+            flat
+            stretch
             color="negative"
             label="Cancel"
             @click="cancelCup()"
