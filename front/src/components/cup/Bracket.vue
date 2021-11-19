@@ -68,7 +68,7 @@ export default {
 
 .brackets-viewer {
   /* Colors */
-  --primary-background: rgb(38, 38, 38);
+  --primary-background: rgb(29, 29, 29);
   --secondary-background: #303030;
   --match-background: var(--primary-background);
   --font-color: #d9d9d9;

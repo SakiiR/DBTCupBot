@@ -298,11 +298,19 @@ export default class CupManager {
             epicName: op2EpicName,
         } = op2User;
 
+        let op1DiscordMember = null
+        let op2DiscordMember = null
 
-        signale.debug("createChannel: retrieving guild members ...");
-        const op1DiscordMember = await guild.members.fetch(op1DiscordId);
-        const op2DiscordMember = await guild.members.fetch(op2DiscordId);
-        signale.debug("createChannel: retrieved guild members");
+        try {
+            signale.debug("createChannel: retrieving guild members ...");
+            op1DiscordMember = await guild.members.fetch(op1DiscordId);
+            op2DiscordMember = await guild.members.fetch(op2DiscordId);
+            signale.debug("createChannel: retrieved guild members");
+
+        } catch (e) {
+            signale.warn(e);
+            signale.warn(`One user might not be in the discord: ${op1User.discordTag} or ${op2User.discordTag}`);
+        }
 
         // retrieve the list of all participants as DatabaseUser ( containing ranks )
         const users = await User.find({
@@ -337,12 +345,18 @@ export default class CupManager {
             Permissions.FLAGS.VIEW_CHANNEL,
             Permissions.FLAGS.SEND_MESSAGES,
         ];
+
+        const allowed = [Config.discord_client_id];
+
+        if (op1DiscordMember) allowed.push(op1DiscordMember);
+        if (op2DiscordMember) allowed.push(op2DiscordMember);
+
         const permissionOverwrites = [
             {
                 id: everyoneRole,
                 deny: [...defaultPermissions],
             },
-            ...[op1DiscordMember, op2DiscordMember, Config.discord_client_id].map((id) => ({
+            ...allowed.map((id) => ({
                 id,
                 allow: [...defaultPermissions],
             })),

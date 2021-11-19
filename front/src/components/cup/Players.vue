@@ -1,11 +1,13 @@
 <template>
-  <div v-if="!!cup.cup">
+  <div v-if="!!cup.cup" class="full-height">
     <q-table
       :title="`Players (${cup.cup.challengers.length})`"
       :rows="cup.cup.challengers"
       :columns="columns"
       :pagination="initialPagination"
       row-key="name"
+      class="full-height"
+      style="max-height: 600px"
     >
       <template v-slot:body-cell-admin="props">
         <q-td :props="props">

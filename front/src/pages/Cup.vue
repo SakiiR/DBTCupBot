@@ -90,11 +90,10 @@
       <br />
 
       <div class="row">
-        <div class="col-9">
+        <div class="col-9 q-pr-md">
           <cup-players :cup="cup" @update="this.getCup()" />
         </div>
-        <div class="col-1"></div>
-        <div class="col-2">
+        <div class="col-3 q-pl-md">
           <cup-maps :cup="cup" @update="this.getCup()" />
         </div>
       </div>
@@ -194,9 +193,11 @@ export default {
         const seeding = await APIService.previewSeeding(this.cup.cup._id);
 
         let content = ``;
+        let i = 0;
 
         content += `<ul>`;
         for (const player of seeding) {
+          if (i++ % 2 == 0) content += "<br />";
           content += `<li>${player ? player : "BYE"}</li>`;
         }
         content += `</ul>`;
