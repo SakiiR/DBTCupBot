@@ -344,7 +344,7 @@ export default class CupController {
 
         const boStrategy = setBoStrategyRequest.strategy;
 
-        const ret = await Cup.updateOne({ _id }, { $set: { boStrategy } });
+        await Cup.updateOne({ _id }, { $set: { boStrategy } });
 
         return boStrategy;
     }
@@ -383,5 +383,20 @@ export default class CupController {
         await Cup.updateOne({ _id }, { $set: { challengers: [...newChallengers] } });
 
         return newChallengers;
+    }
+
+    @Get('/cup/:id/preview-seeding')
+    async previewSeeding(@Param('id') _id: string, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id }).populate('challengers');
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+
+        const seeding = await cm.getSeeding();
+
+        return seeding;
     }
 }

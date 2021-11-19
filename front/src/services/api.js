@@ -377,4 +377,20 @@ export default class APIService {
 
     return json;
   }
+
+  static async previewSeeding(cupId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/preview-seeding?${ts}`;
+    const method = "GET";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
 }

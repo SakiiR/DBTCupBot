@@ -35,6 +35,7 @@
             label="Join"
             @click="joinCup()"
           />
+
           <q-btn
             v-if="authenticated && cupJoined"
             flag
@@ -44,6 +45,14 @@
           />
 
           <q-separator vertical inset size="3px" />
+
+          <q-btn
+            v-if="admin"
+            flag
+            color="accent"
+            label="Preview Seeding"
+            @click="previewSeeding()"
+          />
 
           <q-btn
             v-if="admin && !cupLocked"
@@ -176,6 +185,25 @@ export default {
         this.boStrategy = this.boStrategyOptions.find(
           (b) => b.value === this.cup.cup.boStrategy
         );
+      });
+    },
+
+    async previewSeeding() {
+      wrapLoading(this.$q, async () => {
+        const seeding = await APIService.previewSeeding(this.cup.cup._id);
+
+        let content = ``;
+
+        content += `<ul>`;
+        for (const player of seeding) {
+          content += `<li>${player ? player : "BYE"}</li>`;
+        }
+        content += `</ul>`;
+
+        this.$q.dialog({
+          message: content,
+          html: true,
+        });
       });
     },
     async startCup() {

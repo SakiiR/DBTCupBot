@@ -655,11 +655,10 @@ export default class CupManager {
     }
 
 
-    private async getSeeding(): Promise<Seeding> {
+    public async getSeeding(): Promise<Seeding> {
         let sortedByRankPos = [...this.cup.challengers];
 
         if (this.cup.automaticSeeding) {
-            signale.debug("Automatic seeding ...");
             return automaticSeeds(sortedByRankPos as IUser[]);
         }
 
