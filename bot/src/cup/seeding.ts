@@ -4,6 +4,8 @@ import {
     Seeding
 } from 'brackets-model';
 import { IUser } from '../models/user';
+import ensurePowerOfTwo from '../utils/ensure-power-of-two';
+import encorePowerOfTwo from "../utils/ensure-power-of-two";
 
 // Code copied from the eggwp project ( thanks laznic ^_^)
 export default async function automaticSeeds(players: IUser[]): Promise<Seeding> {
@@ -44,12 +46,9 @@ export default async function automaticSeeds(players: IUser[]): Promise<Seeding>
         [sortedPlayers[3], sortedPlayers[4]] = [sortedPlayers[4], sortedPlayers[3]]
     }
 
-    const seeds = [...sortedPlayers];
+    let seeds = [...sortedPlayers];
 
-    const powerOfTwo = (num) => Math.log2(num) % 1 === 0;
-    while (!powerOfTwo(seeds.length)) {
-        seeds.push(null);
-    }
+    seeds = ensurePowerOfTwo(seeds);
 
     const numRounds = Math.log(seeds.length) / Math.log(2);
     const seedRounds = [];

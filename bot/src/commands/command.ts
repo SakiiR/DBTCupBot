@@ -10,7 +10,7 @@ export default class Command {
     }
 
     public async getCupManager(cupId: string): Promise<CupManager | null> {
-        const cup = await Cup.findOne({ _id: cupId });
+        const cup = await Cup.findOne({ _id: cupId }).populate('challengers');
 
         if (!cup) return null;
 
