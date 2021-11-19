@@ -40,10 +40,8 @@ export default {
       this.renderBracket(this.cup.cupData);
     },
     renderBracket(data) {
-      if (!data) {
-        console.log("No data to inject for the bracket");
-        return;
-      }
+      if (!data) return;
+
       window.bracketsViewer.render(
         {
           stages: data.stage,
