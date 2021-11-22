@@ -29,6 +29,7 @@ export default class CreateCupCommand extends Command {
         cup.maps = [...Config.default_map_pool];
         cup.type = Config.default_type;
         cup.boStrategy = Config.default_bo_strategy;
+        cup.automaticSeeding = true;
 
         await cup.save();
 

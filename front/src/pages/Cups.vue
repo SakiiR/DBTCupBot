@@ -101,9 +101,8 @@ export default {
     filteredCups() {
       let rows = [...this.rows];
 
-      if (this.hideOverCups) {
-        rows = rows.filter((c) => !c.over);
-      }
+      if (this.hideOverCups) rows = rows.filter((c) => !c.over);
+
       return rows;
     },
     ...mapState({

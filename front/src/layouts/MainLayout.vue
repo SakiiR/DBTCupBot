@@ -2,9 +2,9 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated style="margin: auto; width: 80%">
       <q-toolbar>
-        <!-- <q-btn flat dense round icon="menu" aria-label="Menu" /> -->
-
-        <q-toolbar-title> DBT Cup </q-toolbar-title>
+        <q-toolbar-title>
+          <router-link to="/cups"> DBT Cup </router-link>
+        </q-toolbar-title>
 
         <router-link to="/cups">
           <q-btn flat round dense icon="emoji_events" class="q-mr-xs">
@@ -64,3 +64,9 @@ export default defineComponent({
   }),
 });
 </script>
+
+<style scoped>
+a {
+  text-decoration: none;
+}
+</style>
