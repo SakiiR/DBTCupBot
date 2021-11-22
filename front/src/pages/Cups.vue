@@ -102,7 +102,7 @@ export default {
       let rows = [...this.rows];
 
       if (this.hideOverCups) {
-        rows = rows.filter((c) => !!c.over);
+        rows = rows.filter((c) => !c.over);
       }
       return rows;
     },
