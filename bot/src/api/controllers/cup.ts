@@ -380,12 +380,14 @@ export default class CupController {
         const challengers = cup.challengers as string[];
 
         const newChallengers = challengers.filter(i => i !== kickPlayerRequest.id);
+        const targetUser = await User.findOne({ _id: kickPlayerRequest.id });
+
+        if (targetUser._id === kickPlayerRequest.id) throw new BadRequestError(`You can't kick yourself`);
 
         await Cup.updateOne({ _id }, { $set: { challengers: [...newChallengers] } });
 
         const cm = new CupManager(request.discordClient.getClient(), cup);
         const discordTag = getDiscordTag(user.discordId);
-        const targetUser = await User.findOne({ _id: kickPlayerRequest.id });
         const targetDiscordTag = getDiscordTag(targetUser.discordId);
 
         await cm.announceMessage(`${discordTag} kicked out ${targetDiscordTag} from the cup **${cup.title}**`);
