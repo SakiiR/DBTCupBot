@@ -4,7 +4,15 @@
       <q-toolbar class="bg-primary text-white q-my-md shadow-2">
         <span>Cups</span>
         <q-space />
-        <q-separator />
+
+        <q-checkbox
+          color="positive"
+          label="Hide over cups"
+          v-model="hideOverCups"
+        >
+          <q-tooltip>Hide over cups</q-tooltip>
+        </q-checkbox>
+
         <q-btn
           v-if="authenticated && admin"
           flat
@@ -16,7 +24,7 @@
         </q-btn>
       </q-toolbar>
     </div>
-    <q-table title="Cups" :rows="rows" :columns="columns">
+    <q-table title="Cups" :rows="filteredCups" :columns="columns">
       <template v-slot:body-cell-index="props">
         <q-td :props="props">
           <b>{{ props.value }}</b>
@@ -90,6 +98,14 @@ export default {
     this.loadCups();
   },
   computed: {
+    filteredCups() {
+      let rows = [...this.rows];
+
+      if (this.hideOverCups) {
+        rows = rows.filter((c) => !!c.over);
+      }
+      return rows;
+    },
     ...mapState({
       authenticated: (state) => !!state.general.user,
       admin: (state) => !!state.general.user && state.general.user.admin,
@@ -207,6 +223,7 @@ export default {
     return {
       columns,
       rows: [],
+      hideOverCups: false,
     };
   },
 };
