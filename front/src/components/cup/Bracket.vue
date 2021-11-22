@@ -24,17 +24,19 @@ export default {
     this.loadBracketManager();
   },
   data() {
-    return {};
+    return {
+      script: null,
+    };
   },
   methods: {
     loadBracketManager() {
-      let script = document.createElement("script");
-      script.setAttribute(
+      this.script = document.createElement("script");
+      this.script.setAttribute(
         "src",
         "https://cdn.jsdelivr.net/npm/brackets-viewer/dist/brackets-viewer.min.js"
       );
-      document.head.appendChild(script);
-      script.addEventListener("load", this.loadedBracketManager);
+      document.head.appendChild(this.script);
+      this.script.addEventListener("load", this.loadedBracketManager);
     },
     loadedBracketManager() {
       this.renderBracket(this.cup.cupData);

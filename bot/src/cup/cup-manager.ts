@@ -655,7 +655,7 @@ export default class CupManager {
 
             let msg = ``;
 
-            msg += `And the winner is \`${winner.epicName}\` !`
+            msg += `And the winner is \`${winner.epicName}\` !\n`
             msg += `Congratulation ${getDiscordTag(winner.discordId)}`
 
             await this.announceMessage(msg);

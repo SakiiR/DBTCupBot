@@ -368,7 +368,7 @@ export default class CupController {
     }
 
     @Put('/cup/:id/kick')
-    async kickPlayer(@Param('id') _id: string, @Body() kickPlayerRequest: KickPlayerRequest, @CurrentUser() user?: IUser) {
+    async kickPlayer(@Param('id') _id: string, @Req() request: Express.Request, @Body() kickPlayerRequest: KickPlayerRequest, @CurrentUser() user?: IUser) {
         if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
 
         const cup = await Cup.findOne({ _id });
@@ -382,6 +382,13 @@ export default class CupController {
         const newChallengers = challengers.filter(i => i !== kickPlayerRequest.id);
 
         await Cup.updateOne({ _id }, { $set: { challengers: [...newChallengers] } });
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+        const targetUser = await User.findOne({ _id: kickPlayerRequest.id });
+        const targetDiscordTag = getDiscordTag(targetUser.discordId);
+
+        await cm.announceMessage(`${discordTag} kicked out ${targetDiscordTag} from the cup **${cup.title}**`);
 
         return newChallengers;
     }

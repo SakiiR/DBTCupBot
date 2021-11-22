@@ -130,13 +130,23 @@ export default {
 
     return {
       cup: null,
-      boStrategyOptions,
+      polling: null,
       boStrategy: null,
+      boStrategyOptions,
     };
   },
   mounted() {
+    const interval = 10000;
+
     this.getCup();
+    this.polling = setInterval(() => {
+      this.getCup();
+    }, interval);
   },
+  beforeUnmount() {
+    if (this.polling) clearInterval(this.polling);
+  },
+
   computed: {
     ...mapState({
       user: (state) => state.general.user,
