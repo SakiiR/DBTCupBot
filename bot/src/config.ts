@@ -28,6 +28,8 @@ export default class Config {
     static pickEmoji = ":white_check_mark:";
     static banEmoji = ":no_entry_sign:";
 
+    static max_joined_teams = 5;
+
     static timeBeforeDeletingChannel = 5000;
 
     static announcementChannel = process.env.ANNOUNCEMENT_CHANNEL || "general";

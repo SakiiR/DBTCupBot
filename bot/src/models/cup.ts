@@ -1,6 +1,7 @@
 import { model, Schema } from 'mongoose';
 import uuid from '../utils/uuid';
 import { IMatch } from './match';
+import { ITeam } from './team';
 import { IUser } from './user';
 
 export enum CupBoStrategy {
@@ -15,6 +16,7 @@ export interface ICup {
     type: string;
     title: string;
     challengers: IUser[] | string[];
+    teams: ITeam[] | string[];
     matches: IMatch[] | string[];
     maps: string[];
     over: boolean;
@@ -34,6 +36,7 @@ const schema = new Schema<ICup>({
     type: { type: String, required: true },
     title: { type: String, required: true, unique: true },
     challengers: [{ type: String, ref: 'User' }],
+    teams: [{ type: String, ref: 'Team' }],
     matches: [{ type: String, ref: 'Match', default: [] }],
     maps: [{ type: String }],
     over: { type: Boolean, default: false },

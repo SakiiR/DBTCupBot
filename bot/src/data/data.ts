@@ -1,7 +1,8 @@
 import signale from 'signale';
 import Config from '../config';
 import Cup from '../models/cup';
-import User from '../models/user';
+import Team from '../models/team';
+import User, { IUser } from '../models/user';
 
 export default class DatabaseFixtures {
     static async createUserAndGetId(user) {
@@ -13,6 +14,27 @@ export default class DatabaseFixtures {
         const { _id } = await user.save();
 
         return _id;
+    }
+
+    static async createTeamAndGetId(team) {
+        const { name } = team;
+
+        const found = await Team.findOne({ name });
+        if (found) return found._id;
+
+        const { _id } = await team.save();
+
+        return _id;
+    }
+
+    static getUserIdByName(users: IUser[], userIds: string[], name: string): string | null {
+        const found = users.find(u => u.epicName.includes(name) || u.discordTag.includes(name));
+
+        if (!found) return null;
+
+        const index = users.map(u => u.discordTag).indexOf(found.discordTag);
+
+        return userIds[index];
     }
 
     static async fill() {
@@ -220,6 +242,40 @@ export default class DatabaseFixtures {
         const userIds = [];
         for (const user of users) {
             userIds.push(await this.createUserAndGetId(user));
+        }
+
+        const sakiir = this.getUserIdByName(users, userIds, 'SakiiR');
+        const chamo = this.getUserIdByName(users, userIds, 'Chamo');
+        const doctor = this.getUserIdByName(users, userIds, 'Doctor');
+        const lyst = this.getUserIdByName(users, userIds, 'LySt');
+        const edouard = this.getUserIdByName(users, userIds, 'Edouard');
+        const signys = this.getUserIdByName(users, userIds, 'Signys');
+
+        const teams = [
+            new Team({
+                name: 'Hammer',
+                players: [sakiir, chamo],
+                owner: sakiir,
+                password: 'default',
+            }),
+            new Team({
+                name: 'Kids',
+                players: [lyst, doctor],
+                owner: lyst,
+                password: 'default',
+            }),
+            new Team({
+                name: 'Nouveaux',
+                players: [signys, edouard],
+                owner: signys,
+                password: 'default',
+            })
+        ];
+
+        const teamIds = []
+
+        for (const team of teams) {
+            teamIds.push(await this.createTeamAndGetId(team));
         }
 
         const cup = new Cup({

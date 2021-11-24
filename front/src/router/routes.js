@@ -7,6 +7,7 @@ const routes = [
       { path: "login", component: () => import("pages/Login.vue") },
       { path: "me", component: () => import("pages/Me.vue") },
       { path: "users", component: () => import("pages/Users.vue") },
+      { path: "teams", component: () => import("pages/Teams.vue") },
       { path: "cups", component: () => import("pages/Cups.vue") },
       { path: "token", component: () => import("pages/Token.vue") },
       { path: "logout", component: () => import("pages/Logout.vue") },
