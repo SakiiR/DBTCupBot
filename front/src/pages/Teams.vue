@@ -81,6 +81,28 @@
           </q-btn>
 
           <q-btn
+            v-if="authenticated && canEditTeam(props.row._id)"
+            @click="renewPassword(props.row._id)"
+            flat
+            dense
+            round
+            icon="refresh"
+          >
+            <q-tooltip>Renew password for {{ props.row.name }}</q-tooltip>
+          </q-btn>
+
+          <q-btn
+            v-if="authenticated && canViewTeamPassword(props.row._id)"
+            @click="unlockTeamPassword(props.row._id)"
+            flat
+            dense
+            round
+            icon="visibility"
+          >
+            <q-tooltip>Get password for {{ props.row.name }}</q-tooltip>
+          </q-btn>
+
+          <q-btn
             v-if="authenticated && isAdmin"
             @click="removeTeam(props.row._id)"
             flat
@@ -101,6 +123,7 @@ import APIService from "src/services/api";
 import { mapState } from "vuex";
 import wrapLoading from "src/utils/loading";
 import Date from "src/components/Date";
+import TeamPassword from "src/components/dialog/TeamPassword";
 
 export default {
   name: "Teams",
@@ -143,9 +166,46 @@ export default {
       return ownerId === team.owner || this.isAdmin;
     },
 
+    canViewTeamPassword(teamId) {
+      return this.canEditTeam(teamId);
+    },
+
+    async getTeamPassword(teamId) {
+      const password = await wrapLoading(this.$q, async () => {
+        return await APIService.teamPassword(teamId);
+      });
+      return password;
+    },
+
+    async unlockTeamPassword(teamId) {
+      const password = await this.getTeamPassword(teamId);
+
+      if (!password)
+        return this.$q.notify({
+          message: "You don't have access to that password",
+          color: "negative",
+        });
+
+      this.$q.dialog({
+        component: TeamPassword,
+        componentProps: {
+          password,
+        },
+      });
+    },
+
+    async renewPassword(teamId) {
+      await wrapLoading(this.$q, async () => {
+        await APIService.renewTeamPassword(teamId);
+      });
+      this.$q.notify({
+        message: "Password renewed!",
+        color: "positive",
+      });
+    },
+
     async editTeam(teamId) {
       const team = this.teams.find((t) => t._id === teamId);
-      if (!team) return;
 
       this.$q
         .dialog({

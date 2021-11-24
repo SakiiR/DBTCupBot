@@ -510,9 +510,47 @@ export default class APIService {
       headers: { ...getHeaders() },
     });
 
+    if (response.status === 204) return;
+
     const json = await response.json();
 
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async teamPassword(teamId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}/password?${ts}`;
+    const method = "GET";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async renewTeamPassword(teamId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}/renew-password?${ts}`;
+    const method = "PUT";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
     if (response.status === 204) return;
+
+    const json = await response.json();
 
     if (response.status !== 200) throw new Error(json.message);
 

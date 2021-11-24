@@ -131,6 +131,46 @@ export default class TeamController {
         return null;
     }
 
+    @Get('/team/:id/password')
+    async password(@Param('id') _id: string, @CurrentUser() user?: IUser) {
+        if (!user) throw new ForbiddenError('You are not authorized');
+
+        const team = await Team.findOne({ _id });
+
+        if (!team) throw new NotFoundError(`This team does not exist`);
+
+        const allowed = user.admin || team.owner === user._id;
+
+        if (!allowed) throw new ForbiddenError('You are not authorized');
+
+        return team.password;
+    }
+
+    @Put('/team/:id/renew-password')
+    @OnNull(204)
+    async renewPassword(@Param('id') _id: string, @CurrentUser() user?: IUser) {
+        if (!user) throw new ForbiddenError('You are not authorized');
+
+        const team = await Team.findOne({ _id });
+
+        if (!team) throw new NotFoundError(`This team does not exist`);
+
+        const allowed = user.admin || team.owner === user._id;
+
+        if (!allowed) throw new ForbiddenError('You are not authorized');
+
+        const password = uuid();
+
+        await Team.updateOne({ _id }, {
+            $set: {
+                password
+            }
+        });
+
+        return null;
+    }
+
+
 
 
     @Post('/teams')
