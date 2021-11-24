@@ -69,7 +69,7 @@ export default {
       this.inputType = this.inputType === "password" ? "text" : "password";
     },
     copyPassword() {
-      copyToClipboard(this.pasword)
+      copyToClipboard(this.password)
         .then(() => {
           this.$q.notify({
             message: "Saved to clipboard!",

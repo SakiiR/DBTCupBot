@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div @click="copy2clipboard()">
     <q-chip>
       <div v-if="!!value">
         <q-tooltip>{{ value }}</q-tooltip>
@@ -15,6 +15,7 @@
 
 <script>
 import moment from "moment";
+import { copyToClipboard } from "quasar";
 
 export default {
   name: "Date",
@@ -25,6 +26,15 @@ export default {
   },
   props: {
     value: String,
+  },
+  methods: {
+    async copy2clipboard() {
+      await copyToClipboard(this.value);
+      this.$q.notify({
+        message: "Copied to clipboard",
+        color: "positive",
+      });
+    },
   },
   computed: {
     humanDate() {
