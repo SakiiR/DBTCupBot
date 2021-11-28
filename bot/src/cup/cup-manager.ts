@@ -284,13 +284,20 @@ export default class CupManager {
         const defaultPermissions = [
             Permissions.FLAGS.VIEW_CHANNEL,
             Permissions.FLAGS.SEND_MESSAGES,
+
         ];
+
+        const allowed = [op1DiscordMember, op2DiscordMember, Config.discord_client_id];
+
+        if (Config.match_channel_allowed_role)
+            allowed.push(Config.match_channel_allowed_role);
+
         const permissionOverwrites = [
             {
                 id: everyoneRole,
                 deny: [...defaultPermissions],
             },
-            ...[op1DiscordMember, op2DiscordMember, Config.discord_client_id].map((id) => ({
+            ...allowed.map((id) => ({
                 id,
                 allow: [...defaultPermissions],
             })),
