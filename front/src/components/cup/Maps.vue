@@ -14,7 +14,12 @@
         />
       </q-toolbar-title>
     </q-toolbar>
-    <q-list bordered>
+    <q-list
+      bordered
+      dark
+      class="scroll"
+      style="background-color: rgb(29, 29, 29); max-height: 600px"
+    >
       <q-item
         v-for="map in cup.cup.maps"
         :key="map"

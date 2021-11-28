@@ -36,7 +36,7 @@ export default class ResetChannelsCommand extends Command {
 
         await sleep(10e3);
 
-        const cm = new CupManager(this.client, cup);
+        const cm = await this.getCupManager(cup._id);
         await cm.createChannels();
     }
 

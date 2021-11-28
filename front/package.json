@@ -15,6 +15,7 @@
   "dependencies": {
     "@quasar/extras": "^1.0.0",
     "core-js": "^3.6.5",
+    "moment": "^2.29.1",
     "quasar": "^2.0.0",
     "tailwindcss": "^2.2.16",
     "vuex": "^4.0.2"
@@ -25,7 +26,9 @@
     "eslint": "^7.14.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^7.0.0",
-    "eslint-webpack-plugin": "^2.4.0"
+    "eslint-webpack-plugin": "^2.4.0",
+    "node-sass": "^6.0.1",
+    "sass-loader": "^12.3.0"
   },
   "browserslist": [
     "last 10 Chrome versions",

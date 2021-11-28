@@ -24,26 +24,26 @@ export default {
     this.loadBracketManager();
   },
   data() {
-    return {};
+    return {
+      script: null,
+    };
   },
   methods: {
     loadBracketManager() {
-      let script = document.createElement("script");
-      script.setAttribute(
+      this.script = document.createElement("script");
+      this.script.setAttribute(
         "src",
         "https://cdn.jsdelivr.net/npm/brackets-viewer/dist/brackets-viewer.min.js"
       );
-      document.head.appendChild(script);
-      script.addEventListener("load", this.loadedBracketManager);
+      document.head.appendChild(this.script);
+      this.script.addEventListener("load", this.loadedBracketManager);
     },
     loadedBracketManager() {
       this.renderBracket(this.cup.cupData);
     },
     renderBracket(data) {
-      if (!data) {
-        console.log("No data to inject for the bracket");
-        return;
-      }
+      if (!data) return;
+
       window.bracketsViewer.render(
         {
           stages: data.stage,
@@ -70,7 +70,7 @@ export default {
 
 .brackets-viewer {
   /* Colors */
-  --primary-background: rgb(38, 38, 38);
+  --primary-background: rgb(29, 29, 29);
   --secondary-background: #303030;
   --match-background: var(--primary-background);
   --font-color: #d9d9d9;

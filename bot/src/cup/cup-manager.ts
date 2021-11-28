@@ -2,7 +2,9 @@ import { BracketsManager, JsonDatabase } from 'brackets-manager';
 import {
     Match as BracketMatch,
     Seeding,
-    Status as MatchStatus
+    Status as MatchStatus,
+    StageType,
+    StageSettings
 } from 'brackets-model';
 import {
     Client, Message,
@@ -27,7 +29,10 @@ import getStoragePath from '../utils/storage-path';
 import BO1 from './pick-ban/bo1';
 import BO3 from './pick-ban/bo3';
 import { PickBan, Player } from './pick-ban/pick-ban';
+import automaticSeeds from './seeding';
 
+import encorePowerOfTwo from "../utils/ensure-power-of-two";
+import ensurePowerOfTwo from '../utils/ensure-power-of-two';
 
 
 interface RegisterChannelResponse {
@@ -39,6 +44,8 @@ interface RegisterChannelResponse {
 export interface MatchChannelTopic {
     match?: BracketMatch;
     cupId?: string;
+    highSeedPlayerId?: string;
+    lowSeedPlayerId?: string;
 }
 
 export default class CupManager {
@@ -61,7 +68,6 @@ export default class CupManager {
     private async archiveCup(): Promise<void> {
         const storagePath = this.getStoragePath();
 
-
         const data = await fs.readFile(storagePath, "utf-8");
         await fs.writeFile(storagePath.replace('.json', '.json.bak'), data);
 
@@ -81,27 +87,69 @@ export default class CupManager {
         return await User.findOne({ epicName });
     }
 
-    public async forceMatchScore(match: BracketMatch, leftScore: number, rightScore: number): Promise<boolean> {
+    public async announceMessage(message: string): Promise<void> {
+        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
+        const channels = await guild.channels.fetch();
+        const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+
+        if (!announcementChannel) {
+            const candidates = channels.map((c) => c.name).join(", ");
+            signale.warn("The announcement channel could not be found !");
+            signale.warn(`Here is a list of the channel you can use: ${candidates}`);
+            return;
+        }
+
+        await announcementChannel.send(message);
+
+    }
+
+    public async announceMatchResult(whoWin: IUser, whoLoose: IUser, winnerScore: number, looserScore: number): Promise<void> {
+        const winnerDiscordTag = getDiscordTag(whoWin.discordId);
+        const looserDiscordTag = getDiscordTag(whoLoose.discordId);
+
+        let msg = '';
+
+        // msg += "New Match Result: \n"
+        msg += `${winnerDiscordTag} ${winnerScore} - ${looserScore} ${looserDiscordTag}\n`;
+        // msg += `Congratz ${winnerDiscordTag}`;
+
+        await this.announceMessage(msg);
+    }
+
+    public async forceMatchScore(matchTopic: MatchChannelTopic, leftScore: number, rightScore: number): Promise<boolean> {
         const manager = this.getManager();
+        const { match } = matchTopic;
+
+        const highSeedUser = await User.findOne({ _id: matchTopic.highSeedPlayerId });
+        const lowSeedUser = await User.findOne({ _id: matchTopic.lowSeedPlayerId });
+
+        const op1User = await this.getUserByParticipantId(match.opponent1.id);
+        const op2User = await this.getUserByParticipantId(match.opponent2.id);
+
+        const winner = leftScore > rightScore ? highSeedUser : lowSeedUser;
+        const looser = leftScore > rightScore ? lowSeedUser : highSeedUser;
+        const winnerScore = leftScore > rightScore ? leftScore : rightScore;
+        const looserScore = leftScore > rightScore ? rightScore : leftScore;
 
         const matchUpdate = {
             id: match.id,
             status: MatchStatus.Completed,
             opponent1: {
                 id: match.opponent1.id,
-                score: leftScore,
-                result: leftScore > rightScore ? 'win' : 'loss',
+                score: op1User._id === winner._id ? winnerScore : looserScore,
+                result: op1User._id === winner._id ? 'win' : 'loss',
             },
             opponent2: {
                 id: match.opponent2.id,
-                score: rightScore,
-                result: leftScore < rightScore ? 'win' : 'loss',
+                score: op2User._id === winner._id ? winnerScore : looserScore,
+                result: op2User._id === winner._id ? 'win' : 'loss',
             },
         };
 
+
         await manager.update.match({ ...(matchUpdate as BracketMatch) });
 
-        signale.debug({ msg: "Updating match", matchUpdate });
+        await this.announceMatchResult(winner, looser, winnerScore, looserScore);
 
         await this.createChannels();
 
@@ -197,6 +245,7 @@ export default class CupManager {
         m.highSeedPlayer = op1User;
         m.lowSeedPlayer = op2User;
         await m.save();
+
         const cup = await Cup.findOne({ _id: this.cup._id });
         cup.matches = [...cup.matches, m._id];
         await cup.save();
@@ -215,6 +264,13 @@ export default class CupManager {
                 result: op1Score < op2Score ? 'win' : 'loss',
             },
         };
+
+        const winner = op1Score > op2Score ? op1User : op2User;
+        const looser = op1Score > op2Score ? op2User : op1User;
+        const winnerScore = op1Score > op2Score ? op1Score : op2Score;
+        const looserScore = op1Score > op2Score ? op2Score : op1Score;
+
+        await this.announceMatchResult(winner, looser, winnerScore, looserScore);
 
         await manager.update.match({ ...(matchUpdate as BracketMatch) });
 
@@ -246,11 +302,19 @@ export default class CupManager {
             epicName: op2EpicName,
         } = op2User;
 
+        let op1DiscordMember = null
+        let op2DiscordMember = null
 
-        signale.debug("createChannel: retrieving guild members ...");
-        const op1DiscordMember = await guild.members.fetch(op1DiscordId);
-        const op2DiscordMember = await guild.members.fetch(op2DiscordId);
-        signale.debug("createChannel: retrieved guild members");
+        try {
+            signale.debug("createChannel: retrieving guild members ...");
+            op1DiscordMember = await guild.members.fetch(op1DiscordId);
+            op2DiscordMember = await guild.members.fetch(op2DiscordId);
+            signale.debug("createChannel: retrieved guild members");
+
+        } catch (e) {
+            signale.warn(e);
+            signale.warn(`One user might not be in the discord: ${op1User.discordTag} or ${op2User.discordTag}`);
+        }
 
         // retrieve the list of all participants as DatabaseUser ( containing ranks )
         const users = await User.find({
@@ -261,7 +325,7 @@ export default class CupManager {
 
         const orderedUsers = users
             .map((u) => u.toObject())
-            .sort((a, b) => b.rating - a.rating)
+            .sort((a, b) => b.rating.position - a.rating.position)
             .map((u) => u.epicName);
 
         const op1Index = orderedUsers.indexOf(op1EpicName);
@@ -273,7 +337,6 @@ export default class CupManager {
 
         // Computes Best Of
         // is looser bracket
-        signale.debug({ cup: this.cup });
         match = BoStrategy.apply(this.cup.boStrategy as CupBoStrategy, match, rounds);
 
         signale.debug(
@@ -292,6 +355,9 @@ export default class CupManager {
         if (Config.match_channel_allowed_role)
             allowed.push(Config.match_channel_allowed_role);
 
+        if (op1DiscordMember) allowed.push(op1DiscordMember);
+        if (op2DiscordMember) allowed.push(op2DiscordMember);
+
         const permissionOverwrites = [
             {
                 id: everyoneRole,
@@ -307,15 +373,16 @@ export default class CupManager {
         const topic = Serializer.serialize<MatchChannelTopic>({
             match,
             cupId: this.cup._id,
+            highSeedPlayerId: highSeedPlayer._id,
+            lowSeedPlayerId: lowSeedPlayer._id,
         });
 
 
         signale.debug("createChannel: retrieving guild channels ...");
-        const existingChannels = await guild.channels.fetch();
+        const matchIdToken = `${match.id}-`
+        const found = await guild.channels.cache.find((c) => c.name.substring(0, matchIdToken.length) === matchIdToken);
         signale.debug("createChannel: retrieved guild channels");
 
-        const matchIdToken = `${match.id}-`
-        const found = existingChannels.find((c) => c.name.substring(0, matchIdToken.length) === matchIdToken);
 
 
         if (!!found) {
@@ -359,10 +426,11 @@ export default class CupManager {
 
         if (!channel) return;
 
+        const mapsCpy = [...this.cup.maps];
         let bo =
             match.child_count === 1
-                ? new BO1([...this.cup.maps]) // Actually do a copy of this because we want to compare in the getMapListMessage function, And we don't want the BO class to modify it
-                : new BO3([...this.cup.maps]);
+                ? new BO1(mapsCpy) // Actually do a copy of this because we want to compare in the getMapListMessage function, And we don't want the BO class to modify it
+                : new BO3(mapsCpy);
 
         const $this = this;
 
@@ -452,9 +520,7 @@ export default class CupManager {
                 }
             }
 
-            if (message.deletable) {
-                await message.delete();
-            }
+            message.deletable && await message.delete();
 
             const [selectedMap] = interaction.values;
 
@@ -497,10 +563,11 @@ export default class CupManager {
                     answer += `Your map is **${maps}**\n`;
                 else
                     answer += `Your maps are **${maps}**\n`;
+
                 answer += `HF GL !\n`;
                 answer += `\n`;
 
-                if (mapListMessage.deletable) await mapListMessage.delete();
+                mapListMessage.deletable && await mapListMessage.delete();
             } else {
                 await mapListMessage.edit(
                     getMapListMessage(bo.remainingMaps())
@@ -516,9 +583,7 @@ export default class CupManager {
     public async hasChannel(match: BracketMatch): Promise<boolean> {
         const guild = await this.client.guilds.fetch(Config.discord_guild_id);
 
-        const channels = await guild.channels.fetch();
-
-        const found = channels.find((c) => {
+        const found = guild.channels.cache.find((c) => {
             const [idStr] = c.name.split('-');
             return idStr === match.id.toString();
         });
@@ -531,9 +596,55 @@ export default class CupManager {
 
         const manager = this.getManager();
 
-        const matches = await manager.storage.select('match');
+        const matches: BracketMatch[] = await manager.storage.select('match');
 
         const finalMatch = matches[matches.length - 1];
+
+        if (this.cup.type === "round_robin") {
+            const found = matches.find(m => m.status !== MatchStatus.Completed && (!!m.opponent1 && !!m.opponent2));
+
+            if (found) return; // All the matches are not completed, just don't do anything
+
+            // The round robin is over, lets get the winner
+
+            let map = {}
+
+            for (const match of matches) {
+                if (!match.opponent1 || !match.opponent2) continue;
+
+                if (!(match.opponent1.id in map))
+                    map[match.opponent1.id] = 0;
+
+                if (!(match.opponent2.id in map))
+                    map[match.opponent2.id] = 0;
+
+                map[match.opponent1.id] += match.opponent1.score;
+                map[match.opponent2.id] += match.opponent2.score;
+            }
+
+            const score = Object.keys(map).map(i => ({ player: i, score: map[i] })).sort((a, b) => b.score - a.score);
+
+            let msg = '';
+
+            msg += "The cup is over\n";
+            msg += "Scoreboard: \n\n";
+            for (const s of score) {
+                const user = await this.getUserByParticipantId(parseInt(s.player));
+                const discordTag = getDiscordTag(user.discordId);
+
+                msg += `Player ${discordTag} - ${s.score} wins\n`
+            }
+
+            const winner = await this.getUserByParticipantId(parseInt(score[0].player));
+            const discordTag = getDiscordTag(winner.discordId);
+
+            msg += `Congratulation ${discordTag}`;
+
+            await this.announceMessage(msg);
+            await this.setCupOver(true);
+
+            return;
+        }
 
         // We have a winner ! announce it !
         if (finalMatch.status === MatchStatus.Completed) {
@@ -546,19 +657,12 @@ export default class CupManager {
 
             signale.success(`Cup winner: ${winner.epicName}`);
 
+            let msg = ``;
 
-            const channels = await guild.channels.fetch();
-            const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+            msg += `And the winner is \`${winner.epicName}\` !\n`
+            msg += `Congratulation ${getDiscordTag(winner.discordId)}`
 
-
-
-            if (!announcementChannel) {
-                signale.warn(`Cannot find announcement channel by name ${Config.announcementChannel}`);
-                return;
-            }
-
-            await announcementChannel.send(`And the winner is \`${winner.epicName}\` !`);
-            await announcementChannel.send(`Congratulation ${getDiscordTag(winner.discordId)}`);
+            await this.announceMessage(msg);
 
             await this.setCupOver(true);
         }
@@ -612,20 +716,21 @@ export default class CupManager {
         signale.debug("Mutex: done");
     }
 
-    private async getSeeding(): Promise<Seeding> {
+
+    public async getSeeding(): Promise<Seeding> {
         let sortedByRankPos = [...this.cup.challengers];
 
-        if (this.cup.automaticSeeding) {
-            signale.debug("Automatic seeding ...");
-            sortedByRankPos = sortedByRankPos.sort(
-                (a: IUser, b: IUser) => b.rating - b.rating
-            );
+        if (this.cup.type === "round_robin") {
+            const epicNamesArray = (sortedByRankPos as IUser[]).map(u => u.epicName);
+
+            return ensurePowerOfTwo<string>(epicNamesArray) as Seeding;
         }
 
-        const powerOfTwo = (num: number) => Math.log2(num) % 1 === 0;
-        while (!powerOfTwo(sortedByRankPos.length)) {
-            sortedByRankPos.push(null);
+        if (this.cup.automaticSeeding) {
+            return automaticSeeds(sortedByRankPos as IUser[]);
         }
+
+        sortedByRankPos = ensurePowerOfTwo(sortedByRankPos);
 
         const seeding: Seeding = sortedByRankPos.map((u: IUser | null) =>
             u ? u.epicName : null
@@ -670,13 +775,23 @@ export default class CupManager {
 
         signale.debug({ seeding });
 
-        await manager.create({
+        let settings: StageSettings = { seedOrdering: ['natural'], grandFinal: 'simple' };
+
+        if (this.cup.type === 'round_robin') {
+            settings['groupCount'] = 1;
+        }
+
+        const cupSettings = {
             name: this.cup.title,
             tournamentId: 0,
-            type: 'double_elimination',
+            type: this.cup.type as StageType,
             seeding,
-            settings: { seedOrdering: ['natural'], grandFinal: 'simple' },
-        });
+            settings,
+        }
+
+        signale.debug({ cupSettings });
+
+        await manager.create(cupSettings);
 
         signale.debug(`Cup created, creating channels ...`);
 

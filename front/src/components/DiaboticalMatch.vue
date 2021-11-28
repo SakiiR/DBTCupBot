@@ -147,14 +147,16 @@
               <div class="flex items-center flex-1">
                 <div
                   class="mr-1 rounded-sm fflag"
-                  :class="`fflag fflag-${client.country.toUpperCase()} ff-lg ff-wave`"
+                  :class="`fflag fflag-${
+                    !!client.country ? client.country.toUpperCase() : 'unknown'
+                  } ff-lg ff-wave`"
                 ></div>
-                <!-- <div
+                <div
                   class="w-6 h-6 mr-1 -my-1 bg-gray-400 bg-cover rounded-sm"
                   :style="{
                     backgroundImage: `url(https://quakelife.ru/diabotical/streamers/avatars/${client.avatar}.png)`,
                   }"
-                ></div> -->
+                ></div>
                 {{ client.name }}
               </div>
               <div

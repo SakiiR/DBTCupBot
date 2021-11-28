@@ -32,7 +32,7 @@ export default class ReportCommand extends Command {
             return await interaction.reply({ content: `The channel topic might be invalid, please contact admins`, ephemeral: true });
 
 
-        const cupManager = new CupManager(this.client, cup);
+        const cupManager = await this.getCupManager(cup._id);
 
         await interaction.deferReply();
 

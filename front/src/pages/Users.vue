@@ -25,7 +25,7 @@
     >
       <template v-slot:body-cell-admin="props">
         <q-td :props="props">
-          <q-toggle
+          <q-checkbox
             v-model="{ v: props.value }.v"
             @click="authenticated && isAdmin && changeAdminess(props.row)"
             :disable="!(authenticated && isAdmin)"
@@ -36,7 +36,19 @@
 
       <template v-slot:body-cell-rating="props">
         <q-td :props="props">
-          <q-chip>{{ props.value }}</q-chip>
+          <rating :value="props.value" />
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-createdAt="props">
+        <q-td :props="props">
+          <date :value="props.value" />
+        </q-td>
+      </template>
+
+      <template v-slot:body-cell-updatedAt="props">
+        <q-td :props="props">
+          <date :value="props.value" />
         </q-td>
       </template>
 
@@ -57,9 +69,16 @@
 import APIService from "src/services/api";
 import { mapState } from "vuex";
 import wrapLoading from "src/utils/loading";
+import Rating from "src/components/Rating";
+import Date from "src/components/Date";
+import sortByRating from "src/utils/rating-sort";
 
 export default {
   name: "Users",
+  components: {
+    Rating,
+    Date,
+  },
   computed: mapState({
     user: (state) => state.general.user,
     authenticated: (state) => !!state.general.user,
@@ -115,6 +134,17 @@ export default {
         field: "rating",
         align: "left",
         sortable: true,
+        sort: (a, b, rowA, rowB) => sortByRating(a, b),
+      },
+      {
+        name: "createdAt",
+        label: "Created At",
+        field: "createdAt",
+      },
+      {
+        name: "updatedAt",
+        label: "Updated At",
+        field: "updatedAt",
       },
       {
         name: "actions",

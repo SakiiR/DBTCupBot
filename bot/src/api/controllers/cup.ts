@@ -6,6 +6,8 @@ import Config from '../../config';
 import CupManager from '../../cup/cup-manager';
 import Cup, { CupBoStrategy } from '../../models/cup';
 import User, { IUser } from "../../models/user";
+import cleanChannels from '../../utils/clean-channels';
+import getDiscordTag from '../../utils/discord-tag';
 import getStoragePath from '../../utils/storage-path';
 
 class AdjustSeedingRequest {
@@ -35,9 +37,18 @@ class StartCupRequest {
     id: string;
 }
 
+class CancelCupRequest {
+    @IsNotEmpty()
+    id: string;
+}
+
 class CreateCupRequest {
     @IsNotEmpty()
     name: string;
+}
+class KickPlayerRequest {
+    @IsNotEmpty()
+    id: string;
 }
 
 class SetBoStrategyRequest {
@@ -82,7 +93,7 @@ export default class CupController {
     }
 
     @Post('/cup/join')
-    async joinCup(@Body() joinCupRequest: JoinOrLeaveCupRequest, @CurrentUser() user?: IUser) {
+    async joinCup(@Body() joinCupRequest: JoinOrLeaveCupRequest, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
         if (!user) throw new ForbiddenError('You are not authorized');
 
         if (!user.epicName || !user.epicId) throw new ForbiddenError('You have to link your epic games account first');
@@ -100,6 +111,11 @@ export default class CupController {
         const found = challengers.find((c: IUser) => c.discordTag === user.discordTag);
         if (!!found) throw new BadRequestError("You already joined this cup");
 
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+
+        await cm.announceMessage(`**${discordTag}** signed up for the cup **${cup.title}**`);
+
 
         const playerList = [...challengers.map((c: IUser) => c._id), user._id];
 
@@ -109,7 +125,7 @@ export default class CupController {
     }
 
     @Post('/cup/leave')
-    async leaveCup(@Body() leaveCupRequest: JoinOrLeaveCupRequest, @CurrentUser() user?: IUser) {
+    async leaveCup(@Body() leaveCupRequest: JoinOrLeaveCupRequest, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
         if (!user) throw new ForbiddenError('You are not authorized');
 
         const cupId = leaveCupRequest.id;
@@ -125,6 +141,11 @@ export default class CupController {
 
         const found = challengers.find((c: IUser) => c.discordTag === user.discordTag);
         if (!found) throw new BadRequestError("You are not part of this cup");
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+
+        await cm.announceMessage(`**${discordTag}** left the cup **${cup.title}**`);
 
 
         const playerList = challengers.filter((c: IUser) => c.discordTag !== user.discordTag).map((c: IUser) => c._id);
@@ -236,6 +257,8 @@ export default class CupController {
         const cm = new CupManager(request.discordClient.getClient(), cup);
 
         await cm.start();
+        const discordTag = getDiscordTag(user.discordId);
+        await cm.announceMessage(`The cup **${cup.title}** have been started by ${discordTag}`);
 
         return null;
     }
@@ -256,6 +279,7 @@ export default class CupController {
         cup.maps = [...Config.default_map_pool];
         cup.type = Config.default_type;
         cup.boStrategy = Config.default_bo_strategy;
+        cup.automaticSeeding = true;
 
         await cup.save();
 
@@ -279,6 +303,36 @@ export default class CupController {
         return cup.toObject();
     }
 
+    @Post('/cup/cancel')
+    async cancel(@Body() cancelCupRequest: CancelCupRequest, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const _id = cancelCupRequest.id;
+        const cup = await Cup.findOne({ _id });
+
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        // clean channels
+        const client = request.discordClient.getClient();
+
+        await cleanChannels(client);
+
+        // reset state
+        await Cup.updateOne({ _id }, {
+            $set: {
+                started: false,
+                over: false
+            }
+        });
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+        await cm.announceMessage(`The cup **${cup.title}** have been cancelled by ${discordTag}`);
+
+        return cup.toObject();
+    }
+
     @Put('/cup/:id/bo-strategy')
     async setBoStrategy(@Param('id') _id: string, @Body() setBoStrategyRequest: SetBoStrategyRequest, @CurrentUser() user?: IUser) {
         if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
@@ -291,7 +345,7 @@ export default class CupController {
 
         const boStrategy = setBoStrategyRequest.strategy;
 
-        const ret = await Cup.updateOne({ _id }, { $set: { boStrategy } });
+        await Cup.updateOne({ _id }, { $set: { boStrategy } });
 
         return boStrategy;
     }
@@ -308,8 +362,51 @@ export default class CupController {
 
         const { automaticSeeding } = setAutomaticSeedingRequest;
 
-        const ret = await Cup.updateOne({ _id }, { $set: { automaticSeeding } });
+        await Cup.updateOne({ _id }, { $set: { automaticSeeding } });
 
         return automaticSeeding;
+    }
+
+    @Put('/cup/:id/kick')
+    async kickPlayer(@Param('id') _id: string, @Req() request: Express.Request, @Body() kickPlayerRequest: KickPlayerRequest, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id });
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        if (cup.started || cup.over) throw new BadRequestError(`Invalid cup state: (started=${cup.started}, over=${cup.over})`);
+
+        const challengers = cup.challengers as string[];
+
+        const newChallengers = challengers.filter(i => i !== kickPlayerRequest.id);
+        const targetUser = await User.findOne({ _id: kickPlayerRequest.id });
+
+        if (targetUser._id === kickPlayerRequest.id) throw new BadRequestError(`You can't kick yourself`);
+
+        await Cup.updateOne({ _id }, { $set: { challengers: [...newChallengers] } });
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+        const discordTag = getDiscordTag(user.discordId);
+        const targetDiscordTag = getDiscordTag(targetUser.discordId);
+
+        await cm.announceMessage(`${discordTag} kicked out ${targetDiscordTag} from the cup **${cup.title}**`);
+
+        return newChallengers;
+    }
+
+    @Get('/cup/:id/preview-seeding')
+    async previewSeeding(@Param('id') _id: string, @Req() request: Express.Request, @CurrentUser() user?: IUser) {
+        if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
+
+        const cup = await Cup.findOne({ _id }).populate('challengers');
+        if (!cup)
+            throw new HttpError(400, 'Invalid cup id provided');
+
+        const cm = new CupManager(request.discordClient.getClient(), cup);
+
+        const seeding = await cm.getSeeding();
+
+        return seeding;
     }
 }

@@ -1,11 +1,13 @@
 <template>
-  <div v-if="!!cup.cup">
+  <div v-if="!!cup.cup" class="full-height">
     <q-table
       :title="`Players (${cup.cup.challengers.length})`"
       :rows="cup.cup.challengers"
       :columns="columns"
       :pagination="initialPagination"
       row-key="name"
+      class="full-height"
+      style="max-height: 600px"
     >
       <template v-slot:body-cell-admin="props">
         <q-td :props="props">
@@ -15,14 +17,14 @@
 
       <template v-slot:body-cell-rating="props">
         <q-td :props="props">
-          <q-chip>{{ props.value }}</q-chip>
+          <rating :value="props.value" />
         </q-td>
       </template>
 
       <template v-slot:body-cell-actions="props">
         <q-td :props="props">
           <q-btn
-            v-if="isAdmin"
+            v-if="isAdmin && !cupLocked"
             @click="adjustSeeding(props.row._id, 'up')"
             flat
             dense
@@ -31,13 +33,23 @@
           />
 
           <q-btn
-            v-if="isAdmin"
+            v-if="isAdmin && !cupLocked"
             @click="adjustSeeding(props.row._id, 'down')"
             flat
             dense
             round
             icon="arrow_downward"
           />
+
+          <q-btn
+            v-if="isAdmin && !cupLocked"
+            @click="kickPlayer(props.row)"
+            flat
+            dense
+            round
+            icon="person_remove"
+            ><q-tooltip>Kick player</q-tooltip></q-btn
+          >
 
           <router-link :to="`/user/${props.row._id}`">
             <q-btn flat round dense icon="double_arrow" class="q-mr-xs">
@@ -53,11 +65,15 @@
 <script>
 import APIService from "src/services/api";
 import { mapState } from "vuex";
-import BoolIcon from "../BoolIcon.vue";
+import BoolIcon from "src/components/BoolIcon.vue";
 import wrapLoading from "src/utils/loading";
 
+import sortByRating from "src/utils/rating-sort";
+
+import Rating from "src/components/Rating";
+
 export default {
-  components: { BoolIcon },
+  components: { BoolIcon, Rating },
   name: "CupPlayers",
   props: {
     cup: Object,
@@ -74,6 +90,28 @@ export default {
     },
   },
   methods: {
+    async kickPlayer(user) {
+      if (this.cupLocked) {
+        return this.$q.notify({
+          type: "negative",
+          message: "The cup cannot be modified",
+        });
+      }
+
+      this.$q
+        .dialog({
+          title: "Confirm",
+          message: `Are you sure you want to kick '${user.discordTag}' from the cup ?`,
+          cancel: true,
+          persistent: false,
+        })
+        .onOk(() => {
+          wrapLoading(this.$q, async () => {
+            await APIService.kickPlayer(this.cup.cup._id, user._id);
+            this.$emit("update");
+          });
+        });
+    },
     async adjustSeeding(user, direction) {
       if (this.cupLocked) {
         return this.$q.notify({
@@ -84,9 +122,8 @@ export default {
 
       wrapLoading(this.$q, async () => {
         await APIService.adjustSeeding(this.cup.cup._id, user, direction);
+        this.$emit("update");
       });
-
-      this.$emit("update");
     },
   },
   data() {
@@ -115,6 +152,7 @@ export default {
         field: "rating",
         align: "left",
         sortable: true,
+        sort: (a, b, rowA, rowB) => sortByRating(a, b),
       },
       {
         name: "actions",

@@ -36,7 +36,7 @@ export default class UserController {
         for (const user of users) {
             const u = await User.findOne({ _id: user._id });
             if (u.epicId && u.epicName) {
-                u.rating = await DiaboticalService.getUserRating(u.epicId) || 0;
+                u.rating = await DiaboticalService.getUserRating(u.epicId);
                 await u.save();
             }
         }

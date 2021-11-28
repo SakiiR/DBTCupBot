@@ -113,6 +113,26 @@ export default class APIService {
     return json;
   }
 
+  static async cancelCup(cupId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/cancel?${ts}`;
+    const method = "POST";
+    const body = JSON.stringify({
+      id: cupId,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
   static async joinCup(cupId) {
     const ts = new Date().getTime();
 
@@ -331,6 +351,42 @@ export default class APIService {
       method,
       headers: { ...getHeaders() },
       body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async kickPlayer(cupId, playerId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/kick?${ts}`;
+    const method = "PUT";
+    const body = JSON.stringify({
+      id: playerId,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async previewSeeding(cupId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/cup/${cupId}/preview-seeding?${ts}`;
+    const method = "GET";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
     });
 
     const json = await response.json();

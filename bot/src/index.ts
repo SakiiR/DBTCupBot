@@ -59,7 +59,7 @@ async function fixtures(client: DiscordClient) {
         user.discordTag = discordTag;
 
         user.admin = true;
-        user.rating = 0;
+        user.rating = { tier: 0, position: 0 };
 
         try {
             await user.save();

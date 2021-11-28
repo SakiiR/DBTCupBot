@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { CommandInteraction, SelectMenuInteraction } from "discord.js";
 import Config from '../../config';
+import cleanChannels from '../../utils/clean-channels';
 import enforceAdmin from '../../utils/enforce-admin-interaction';
 import Command from '../command';
 
@@ -10,7 +11,7 @@ import Command from '../command';
  */
 export default class CleanChannelsCommand extends Command {
     _name = 'clean-channels';
-    _description = '[Dev-UseWithCaution] Clean all the created channels';
+    _description = 'Clean all the created channels';
 
     async onSelectMenuInteraction(interaction: SelectMenuInteraction) { }
 
@@ -20,11 +21,7 @@ export default class CleanChannelsCommand extends Command {
             return await interaction.reply({ content: 'You are not an admin', ephemeral: true });
         }
 
-        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
-
-        guild.channels.cache.filter((c) => c.name.indexOf('-vs-') !== -1).map(c => {
-            c.delete();
-        })
+        await cleanChannels(this.client);
 
         return await interaction.reply({ content: 'done', ephemeral: true });
     }
