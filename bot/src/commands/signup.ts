@@ -52,7 +52,7 @@ export default class SignupCommand extends Command {
 
         const discordTag = getDiscordTag(currentUser.discordId);
 
-        await cm.announceMessage(`**${discordTag}** signed up for the cup **${cup.title}**`);
+        await cm.announceMessage(`${discordTag} signed up for the cup **${cup.title}**`);
 
         return await interaction.reply(
             { content: `Successfully signed up for **${cup.title}**`, ephemeral: true }
