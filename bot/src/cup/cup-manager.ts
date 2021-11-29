@@ -347,19 +347,25 @@ export default class CupManager {
         const defaultPermissions = [
             Permissions.FLAGS.VIEW_CHANNEL,
             Permissions.FLAGS.SEND_MESSAGES,
+
         ];
 
-        const allowed = [Config.discord_client_id];
+        const channelAllowedRoles = [Config.discord_client_id];
 
-        if (op1DiscordMember) allowed.push(op1DiscordMember);
-        if (op2DiscordMember) allowed.push(op2DiscordMember);
+	    //if (Config.match_channel_allowed_role)
+	    //channelAllowedRoles.push(Config.match_channel_allowed_role);
+
+	    if (op1DiscordMember) channelAllowedRoles.push(op1DiscordMember.id);
+            if (op2DiscordMember) channelAllowedRoles.push(op2DiscordMember.id);
+
+        signale.debug({ allowed: channelAllowedRoles })
 
         const permissionOverwrites = [
             {
                 id: everyoneRole,
                 deny: [...defaultPermissions],
             },
-            ...allowed.map((id) => ({
+	    ...channelAllowedRoles.filter(c => !!c).map((id) => ({
                 id,
                 allow: [...defaultPermissions],
             })),

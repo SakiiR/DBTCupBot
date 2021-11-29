@@ -382,7 +382,7 @@ export default class CupController {
         const newChallengers = challengers.filter(i => i !== kickPlayerRequest.id);
         const targetUser = await User.findOne({ _id: kickPlayerRequest.id });
 
-        if (targetUser._id === kickPlayerRequest.id) throw new BadRequestError(`You can't kick yourself`);
+        if (targetUser._id === user._id) throw new BadRequestError(`You can't kick yourself`);
 
         await Cup.updateOne({ _id }, { $set: { challengers: [...newChallengers] } });
 
