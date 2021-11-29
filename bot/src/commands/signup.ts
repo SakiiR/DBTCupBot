@@ -12,6 +12,7 @@ import { IUser } from '../models/user';
 import getCurrentUser from '../utils/get-interaction-user';
 import getDiscordTag from "../utils/discord-tag";
 import Command from './command';
+import signale from 'signale';
 
 
 
@@ -50,6 +51,7 @@ export default class SignupCommand extends Command {
 
         const cm = await this.getCupManager(cup._id);
 
+	signale.debug({currentUser});
         const discordTag = getDiscordTag(currentUser.discordId);
 
         await cm.announceMessage(`${discordTag} signed up for the cup **${cup.title}**`);

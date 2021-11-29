@@ -352,11 +352,11 @@ export default class CupManager {
 
         const channelAllowedRoles = [Config.discord_client_id];
 
-        if (Config.match_channel_allowed_role)
-            channelAllowedRoles.push(Config.match_channel_allowed_role);
+	    //if (Config.match_channel_allowed_role)
+	    //channelAllowedRoles.push(Config.match_channel_allowed_role);
 
-        if (op1DiscordMember) channelAllowedRoles.push(op1DiscordMember);
-        if (op2DiscordMember) channelAllowedRoles.push(op2DiscordMember);
+	    if (op1DiscordMember) channelAllowedRoles.push(op1DiscordMember.id);
+            if (op2DiscordMember) channelAllowedRoles.push(op2DiscordMember.id);
 
         signale.debug({ allowed: channelAllowedRoles })
 
@@ -365,7 +365,7 @@ export default class CupManager {
                 id: everyoneRole,
                 deny: [...defaultPermissions],
             },
-            ...channelAllowedRoles.map((id) => ({
+	    ...channelAllowedRoles.filter(c => !!c).map((id) => ({
                 id,
                 allow: [...defaultPermissions],
             })),
