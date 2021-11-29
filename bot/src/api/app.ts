@@ -11,6 +11,7 @@ import UserController from './controllers/user';
 import DiscordClient from '../discord/client';
 import { HttpLogger } from './logger';
 import getUserByToken from "../utils/jwt-check";
+import TeamController from './controllers/team';
 
 
 
@@ -54,7 +55,7 @@ export default class App {
         await this.config();
 
         useExpressServer(this.app, {
-            controllers: [CupController, AuthController, UserController],
+            controllers: [CupController, AuthController, UserController, TeamController],
             middlewares: [HttpLogger],
             // defaultErrorHandler: false,
             development: false,

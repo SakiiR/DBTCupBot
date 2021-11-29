@@ -393,4 +393,167 @@ export default class APIService {
 
     return json;
   }
+
+  static async listTeams() {
+    const ts = new Date().getTime();
+
+    const url = `/api/teams?${ts}`;
+    const method = "GET";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
+    const json = await response.json();
+
+    return json;
+  }
+
+  static async joinTeam(teamId, password) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}/join?${ts}`;
+    const method = "POST";
+
+    const body = JSON.stringify({
+      password,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async leaveTeam(teamId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}/leave?${ts}`;
+    const method = "POST";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async editTeam(teamId, name) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}?${ts}`;
+    const method = "PUT";
+
+    const body = JSON.stringify({
+      name,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    if (response.status === 204) return;
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async createTeam(name) {
+    const ts = new Date().getTime();
+
+    const url = `/api/teams?${ts}`;
+    const method = "POST";
+
+    const body = JSON.stringify({
+      name,
+    });
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+      body,
+    });
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async removeTeam(teamId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}?${ts}`;
+    const method = "DELETE";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
+    if (response.status === 204) return;
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async teamPassword(teamId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}/password?${ts}`;
+    const method = "GET";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
+
+  static async renewTeamPassword(teamId) {
+    const ts = new Date().getTime();
+
+    const url = `/api/team/${teamId}/renew-password?${ts}`;
+    const method = "PUT";
+
+    const response = await fetch(url, {
+      method,
+      headers: { ...getHeaders() },
+    });
+
+    if (response.status === 204) return;
+
+    const json = await response.json();
+
+    if (response.status !== 200) throw new Error(json.message);
+
+    return json;
+  }
 }
