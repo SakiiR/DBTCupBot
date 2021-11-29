@@ -588,8 +588,6 @@ export default class CupManager {
     }
 
     public async checkForWinner(): Promise<void> {
-        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
-
         const manager = this.getManager();
 
         const matches: BracketMatch[] = await manager.storage.select('match');
@@ -665,7 +663,6 @@ export default class CupManager {
     }
 
     public async createChannels() {
-
         const mutex = MutexSingleton.getInstance().getMutex();
 
         signale.debug("Mutex: waiting for mutex");
