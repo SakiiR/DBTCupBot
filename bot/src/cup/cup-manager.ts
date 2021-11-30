@@ -174,7 +174,7 @@ export default class CupManager {
 
 
         // Compute score
-        for (const map of maps) {
+        for (const map of maps.reverse()) {
             let op1TeamId = -1;
             let op2TeamId = -1;
             const [client1, client2] = map.clients;
