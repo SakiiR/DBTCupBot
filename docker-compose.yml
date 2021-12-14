@@ -14,10 +14,10 @@ services:
             REDIRECT_URI: '${REDIRECT_URI}'
             FILL_DATABASE: '${FILL_DATABASE}'
             API_SECRET: '${API_SECRET}'
-            ANNOUNCEMENT_CHANNEL: '${ANNOUNCEMENT_CHANNEL}'
+            ANNOUNCEMENT_CHANNEL_ID: '${ANNOUNCEMENT_CHANNEL_ID}'
             CUP_STORAGE: '/data/cup-storage'
             MONGO_URL: 'mongodb://db:27017/dbtcup'
-            MATCH_CHANNEL_ALLOWED_ROLE: '${MATCH_CHANNEL_ALLOWED_ROLE}'
+            MATCH_CHANNEL_ALLOWED_ROLES: '${MATCH_CHANNEL_ALLOWED_ROLES}'
         volumes:
             - './volumes/cups:/data/cup-storage'
         restart: 'always'
