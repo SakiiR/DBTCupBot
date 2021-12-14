@@ -66,7 +66,7 @@ class SetAutomaticSeedingRequest {
 export default class CupController {
     @Get('/cups')
     async getAll() {
-        const cups = await Cup.find();
+        const cups = await Cup.find().sort({ updatedAt: -1 });
 
         return cups.map((c) => c.toObject());
     }

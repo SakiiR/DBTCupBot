@@ -90,7 +90,7 @@ export default class CupManager {
     public async announceMessage(message: string): Promise<void> {
         const guild = await this.client.guilds.fetch(Config.discord_guild_id);
         const channels = await guild.channels.fetch();
-        const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+        const announcementChannel = await channels.find(c => c.id === Config.announcementChannelId) as TextChannel;
 
         if (!announcementChannel) {
             const candidates = channels.map((c) => c.name).join(", ");
@@ -351,8 +351,9 @@ export default class CupManager {
 
         let channelAllowedRoles = [Config.discord_client_id];
 
-        if (Config.match_channel_allowed_role)
-            channelAllowedRoles.push(Config.match_channel_allowed_role);
+        for (const roleId of Config.match_channel_allowed_roles) {
+            channelAllowedRoles.push(roleId);
+        }
 
         if (op1DiscordMember) channelAllowedRoles.push(op1DiscordMember.id);
         if (op2DiscordMember) channelAllowedRoles.push(op2DiscordMember.id);

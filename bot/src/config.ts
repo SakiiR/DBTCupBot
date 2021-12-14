@@ -8,7 +8,7 @@ export default class Config {
     static discord_guild_id = process.env.DISCORD_GUILD_ID || 'default-discord-guild-id';
     static admin_tags = (process.env.ADMIN_TAGS || 'SakiiR#3822').split(',');
     static redirect_uri = process.env.REDIRECT_URI || 'http://localhost:4444/api/auth/callback';
-    static match_channel_allowed_role = process.env.MATCH_CHANNEL_ALLOWED_ROLE || "";
+    static match_channel_allowed_roles = (process.env.MATCH_CHANNEL_ALLOWED_ROLES || "").split(",").filter(c => !!c);
 
     // Mongo
     static mongo_url = (process.env.MONGO_URL || 'mongodb://localhost:27017/dbtcup');
@@ -33,7 +33,7 @@ export default class Config {
 
     static timeBeforeDeletingChannel = 5000;
 
-    static announcementChannel = process.env.ANNOUNCEMENT_CHANNEL || "general";
+    static announcementChannelId = process.env.ANNOUNCEMENT_CHANNEL_ID || null;
     static api_secret = process.env.API_SECRET || "default-secret";
 
     static secretFields = [
