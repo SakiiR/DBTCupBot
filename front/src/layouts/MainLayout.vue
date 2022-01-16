@@ -18,6 +18,12 @@
           </q-btn>
         </router-link>
 
+        <router-link to="/teams">
+          <q-btn flat round dense icon="groups" class="q-mr-xs">
+            <q-tooltip> Teams </q-tooltip>
+          </q-btn>
+        </router-link>
+
         <router-link to="/login" v-if="!authenticated">
           <q-btn flat round dense icon="vpn_key" class="q-mr-xs">
             <q-tooltip> Authenticate </q-tooltip>

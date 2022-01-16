@@ -18,10 +18,10 @@ export default class BO3 extends PickBanSystem {
             return { player: Player.PlayerTwo, pickBan: PickBan.Pick };
 
         if (this.counter === 3)
-            return { player: Player.PlayerOne, pickBan: PickBan.Ban };
+            return { player: Player.PlayerOne, pickBan: PickBan.Pick };
 
         if (this.counter === 4)
-            return { player: Player.PlayerOne, pickBan: PickBan.Pick };
+            return { player: Player.PlayerOne, pickBan: PickBan.Ban };
 
         return { player: this.counter % 2 == 0 ? Player.PlayerOne : Player.PlayerTwo, pickBan: PickBan.Ban }
     }

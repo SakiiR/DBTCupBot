@@ -90,7 +90,7 @@ export default class CupManager {
     public async announceMessage(message: string): Promise<void> {
         const guild = await this.client.guilds.fetch(Config.discord_guild_id);
         const channels = await guild.channels.fetch();
-        const announcementChannel = await channels.find(c => c.name === Config.announcementChannel) as TextChannel;
+        const announcementChannel = await channels.find(c => c.id === Config.announcementChannelId) as TextChannel;
 
         if (!announcementChannel) {
             const candidates = channels.map((c) => c.name).join(", ");
@@ -172,9 +172,10 @@ export default class CupManager {
         let op1Score = 0;
         let op2Score = 0;
 
+        const playedMaps = [];
 
         // Compute score
-        for (const map of maps) {
+        for (const map of maps.reverse()) {
             let op1TeamId = -1;
             let op2TeamId = -1;
             const [client1, client2] = map.clients;
@@ -184,18 +185,17 @@ export default class CupManager {
 
             const errMsg = `Failed to report match: the match retrievied is not '${op1User.epicName}' vs '${op2User.epicName}' but '${client1Username}' vs '${client2Username}' (${map.match_id})`;
 
-
             // Check that the current map contains the proper players
             signale.debug({ op: [op1User.epicName, op2User.epicName], client: [client1Username, client2Username] });
             if ([op1User.epicId, op2User.epicId].indexOf(client1Id) === -1) {
-                signale.warn(errMsg);
-                return false;
+                signale.debug(errMsg);
+                continue;
             }
 
             // Check that the current map contains the proper players
             if ([op1User.epicId, op2User.epicId].indexOf(client2Id) === -1) {
-                signale.warn(errMsg);
-                return false;
+                signale.debug(errMsg);
+                continue;
             }
 
             if (map.match_mode !== "duel") {
@@ -214,11 +214,12 @@ export default class CupManager {
                 op2TeamId = client1TeamId;
             }
 
+            playedMaps.push(map);
+
             // If it is BO1, just write the BO1 score
             if (maps.length === 1) {
                 op1Score = teams[op1TeamId].score;
                 op2Score = teams[op2TeamId].score;
-
                 break;
             }
 
@@ -227,11 +228,10 @@ export default class CupManager {
 
             if (score1 > score2) op1Score++;
             if (score2 > score1) op2Score++;
+        }
 
-            if (isThatAWin(op1Score, op2Score, matchToBePlayed)) {
-                signale.debug(`It's a win ${op1Score}-${op2Score} Best of ${matchToBePlayed}`)
-                break;
-            }
+        if (isThatAWin(op1Score, op2Score, matchToBePlayed)) {
+            signale.debug(`It's a win ${op1Score}-${op2Score} Best of ${matchToBePlayed}`)
         }
 
         const matchplayed = op1Score + op2Score;
@@ -239,9 +239,7 @@ export default class CupManager {
         // Save match information in the database
         const m = new Match();
         m.bracketMatchData = match;
-        // We only keep the corresponding match
-        // If its 2-0, why would we take the third map ( which is probably a wipout match or something)
-        m.maps = maps.slice(0, matchplayed);
+        m.maps = playedMaps;
         m.highSeedPlayer = op1User;
         m.lowSeedPlayer = op2User;
         await m.save();
@@ -347,18 +345,20 @@ export default class CupManager {
         const defaultPermissions = [
             Permissions.FLAGS.VIEW_CHANNEL,
             Permissions.FLAGS.SEND_MESSAGES,
-
         ];
 
-        const channelAllowedRoles = [Config.discord_client_id];
+        let channelAllowedRoles = [Config.discord_client_id];
 
-        if (Config.match_channel_allowed_role)
-            channelAllowedRoles.push(Config.match_channel_allowed_role);
+        for (const roleId of Config.match_channel_allowed_roles) {
+            channelAllowedRoles.push(roleId);
+        }
 
-        if (op1DiscordMember) channelAllowedRoles.push(op1DiscordMember);
-        if (op2DiscordMember) channelAllowedRoles.push(op2DiscordMember);
+        if (op1DiscordMember) channelAllowedRoles.push(op1DiscordMember.id);
+        if (op2DiscordMember) channelAllowedRoles.push(op2DiscordMember.id);
 
-        signale.debug({ allowed: channelAllowedRoles })
+        channelAllowedRoles = channelAllowedRoles.filter(c => !!c);
+
+        signale.debug({ channelAllowedRoles })
 
         const permissionOverwrites = [
             {
@@ -594,8 +594,6 @@ export default class CupManager {
     }
 
     public async checkForWinner(): Promise<void> {
-        const guild = await this.client.guilds.fetch(Config.discord_guild_id);
-
         const manager = this.getManager();
 
         const matches: BracketMatch[] = await manager.storage.select('match');
@@ -671,7 +669,6 @@ export default class CupManager {
     }
 
     public async createChannels() {
-
         const mutex = MutexSingleton.getInstance().getMutex();
 
         signale.debug("Mutex: waiting for mutex");
