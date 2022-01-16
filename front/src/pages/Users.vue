@@ -10,9 +10,9 @@
           flat
           round
           icon="refresh"
-          @click="refreshRating()"
+          @click="refresh()"
         >
-          <q-tooltip>Refresh rating</q-tooltip>
+          <q-tooltip>Refresh rating and Epic username</q-tooltip>
         </q-btn>
       </q-toolbar>
     </div>
@@ -88,9 +88,9 @@ export default {
     this.getUsers();
   },
   methods: {
-    async refreshRating() {
+    async refresh() {
       wrapLoading(this.$q, async () => {
-        await APIService.refreshRating();
+        await APIService.refresh();
         await this.getUsers();
       });
     },

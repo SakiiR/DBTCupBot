@@ -27,8 +27,8 @@ export default class UserController {
     }
 
 
-    @Put('/users/refresh-rating')
-    async refreshRating(@Res() res: Response, @CurrentUser() user?: IUser) {
+    @Put('/users/refresh')
+    async refresh(@Res() res: Response, @CurrentUser() user?: IUser) {
         if (!user || !user.admin) throw new ForbiddenError('You are not authorized');
 
         const users = await User.find();
@@ -36,7 +36,12 @@ export default class UserController {
         for (const user of users) {
             const u = await User.findOne({ _id: user._id });
             if (u.epicId && u.epicName) {
-                u.rating = await DiaboticalService.getUserRating(u.epicId);
+                const epicUser = await DiaboticalService.getUser(u.epicId);
+                const rating = await DiaboticalService.getUserRating(u.epicId);
+
+                u.rating = rating
+                u.epicName = epicUser.name;
+
                 await u.save();
             }
         }

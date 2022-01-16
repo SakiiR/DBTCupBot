@@ -123,6 +123,7 @@ export default class DiaboticalService {
         return dbtUser;
     }
 
+
     static async getUserRating(
         userId: string,
         mode: string = 'md_duel'

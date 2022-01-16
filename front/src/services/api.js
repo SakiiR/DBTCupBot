@@ -193,10 +193,10 @@ export default class APIService {
     return json;
   }
 
-  static async refreshRating() {
+  static async refresh() {
     const ts = new Date().getTime();
 
-    const url = `/api/users/refresh-rating?${ts}`;
+    const url = `/api/users/refresh?${ts}`;
     const method = "PUT";
 
     const response = await fetch(url, {
